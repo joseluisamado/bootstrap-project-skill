@@ -1,0 +1,66 @@
+{{#if readme_badges}}
+[![CI]({{ci_badge_url}})]({{ci_link}}) [![Version](https://img.shields.io/badge/version-{{version}}-blue)](./VERSION) [![License](https://img.shields.io/badge/license-{{license_spdx}}-green)](./LICENSE)
+
+{{/if}}
+# {{project_name}}
+
+> {{tagline}}
+
+**Status**: v{{version}} — {{current_milestone}}. See [`docs/PROGRESS.md`](./docs/PROGRESS.md) for what landed and [`docs/ROADMAP.md`](./docs/ROADMAP.md) for what's next.
+
+## Why this exists
+
+{{#if has_competitors}}
+{{competitors_table}}
+{{/if}}
+{{#unless has_competitors}}
+{{TODO: short paragraph or two on why this project exists. What gap does it fill? Who is it for?}}
+{{/unless}}
+
+See [`docs/PROJECT.md`](./docs/PROJECT.md) for full motivation, principles, and non-goals.
+
+## Quickstart
+
+{{TODO: 3 commands, no more. Anything more is a deploy guide, not a quickstart.}}
+
+```bash
+# 1. ...
+# 2. ...
+# 3. ...
+```
+
+> Want to develop on {{project_name}} itself? See [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+
+## Documentation
+
+User-facing — start here if you want to **use** {{project_name}}:
+
+| Page | What's there | Read it when… |
+|---|---|---|
+| [`docs/DEPLOY.md`](./docs/DEPLOY.md) | Production deployment guide | You're setting up a host |
+| [`docs/BACKUP.md`](./docs/BACKUP.md) | Backup & restore | You care about your data (you do) |
+
+Reference and project docs:
+
+| File | Purpose | Read it when… |
+|---|---|---|
+| [`docs/PROJECT.md`](./docs/PROJECT.md) | Motivation, principles, non-goals, success criteria | You want to know "what is this and what is it not" |
+| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | Components, data model, tech stack, deployment topology | You're making a design choice |
+| [`docs/ROADMAP.md`](./docs/ROADMAP.md) | Milestones M0 → MN | You're planning what to do next |
+| [`docs/PROGRESS.md`](./docs/PROGRESS.md) | Current state of execution | You want a snapshot of "where we are" |
+| [`docs/SECURITY-REVIEW.md`](./docs/SECURITY-REVIEW.md) | Internal security audit | You're exposing this to a network |
+| [`docs/PERFORMANCE.md`](./docs/PERFORMANCE.md) | Smoke benchmarks vs NFRs | You're investigating slowness |
+| [`docs/INCIDENTS.md`](./docs/INCIDENTS.md) | Append-only incident log | Something just broke |
+| [`docs/PRIVACY.md`](./docs/PRIVACY.md) | Data and telemetry stance | You want to know what {{project_name}} does and doesn't collect |
+| [`CLAUDE.md`](./CLAUDE.md) | Conventions for Claude Code agents working on this repo | You're using Claude on this codebase |
+| [`CHANGELOG.md`](./CHANGELOG.md) | Release notes | You're upgrading |
+
+## Privacy
+
+{{project_name}} collects no telemetry, no analytics, and sends no data anywhere by default. Your data lives at: {{TODO: data path inside the volume}}. See [`docs/PRIVACY.md`](./docs/PRIVACY.md).
+
+## License
+
+{{project_name}} is licensed under the {{license_name}} ([`LICENSE`](./LICENSE)).
+
+> SPDX-License-Identifier: {{license_spdx}}

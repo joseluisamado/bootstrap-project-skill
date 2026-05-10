@@ -1,0 +1,82 @@
+# PROGRESS — {{project_name}}
+
+Living document. Update at the end of any non-trivial chunk of work. Latest entry at the top.
+
+---
+
+## Status
+
+**Started**: {{date_today}}
+**Current milestone**: M0 — Foundations
+**Next milestone**: M1
+**Next action**: {{TODO: the very next concrete thing}}
+
+---
+
+## At a glance
+
+| Milestone | Status |
+|---|---|
+| M0 — Foundations | 🟡 In progress |
+| M1 — {{TODO}} | ⚪ Not started |
+| ... | ... |
+
+Legend: ⚪ not started · 🟡 in progress · 🟢 done · 🔴 blocked
+
+---
+
+## Log
+
+### {{date_today}} — Project kickoff
+
+Created foundational documents via the bootstrap-project skill:
+
+- `README.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md`, `LICENSE`, `VERSION`
+- `docs/PROJECT.md`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `docs/PROGRESS.md`, `docs/DEPLOY.md`
+- `docs/BACKUP.md`, `docs/SECURITY-REVIEW.md`, `docs/PERFORMANCE.md`, `docs/INCIDENTS.md`, `docs/PRIVACY.md`
+- `Makefile`, `.pre-commit-config.yaml`, `.editorconfig`, `.gitignore`
+- {{conditional_files}}
+
+Stack decisions locked in:
+- {{stack_summary}}
+
+Open items: see `BOOTSTRAP-MANIFEST.md` for the `{{TODO}}` punch list.
+
+**Next session**: M0 kickoff — initialize repos, write the first `make doctor` pass, get CI green on a single empty commit.
+
+---
+
+## Backlog
+
+Things noticed along the way that don't yet have a milestone home. Move into a milestone or close as won't-do; don't let the list grow.
+
+- _(empty)_
+
+---
+
+## Decisions log
+
+A pointer table to D-NN entries in `docs/ARCHITECTURE.md` "Key decisions" section. Single source of truth = ARCHITECTURE; this table lets you scan dates fast.
+
+| Date | D-NN | Title | Link |
+|---|---|---|---|
+| {{date_today}} | D-01 | {{TODO}} | [ARCHITECTURE.md#d-01](./ARCHITECTURE.md#d-01) |
+
+---
+
+## How to update this file
+
+When you finish a chunk of work:
+
+1. Update the **Status** block at the top. The "Status" line must always reflect reality. If the line is wrong, the doc is broken.
+2. Update the **At a glance** milestone table if a milestone moved.
+3. Add a dated entry to **Log** describing what changed, in 3–8 bullet points. Latest at top.
+4. End each Log entry with a **Pre-flight** sign-off line in this format:
+   ```
+   **Pre-flight**: <component> <X>/<Y> tests pass, <linter> clean. <repeat per component>.
+   ```
+   The sign-off makes the entry self-verifying.
+5. If a non-trivial decision was made, add a `D-NN` entry to `docs/ARCHITECTURE.md` "Key decisions", then add a row to **Decisions log** above pointing at it.
+6. Move any "I noticed but didn't fix" items into **Backlog**.
+
+Commit this file alongside the work it documents.

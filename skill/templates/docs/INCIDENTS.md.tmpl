@@ -1,0 +1,33 @@
+# INCIDENTS — {{project_name}}
+
+Append-only log of incidents and lessons learned. Latest at the top.
+
+> **Why this file exists**: when something breaks, write it down. The 5th time you write "X failed because of Y", you stop forgetting. Most valuable doc category over a 5-year horizon.
+
+---
+
+## How to add an entry
+
+Format per incident:
+
+```markdown
+## YYYY-MM-DD — Short title
+
+**What broke**: One paragraph describing the user-visible symptom.
+
+**Root cause**: What was actually wrong. Often different from what it first looked like.
+
+**What fixed it**: The change that resolved the incident. Link to commit / PR if applicable.
+
+**What changed to prevent recurrence**: Tests added, monitoring added, doc updates, refactors. If "nothing", say so explicitly — not every incident requires preventive work.
+
+**Time to detect / time to mitigate**: Optional, useful for ops-shaped projects.
+```
+
+Be honest about misdiagnoses. The value of this file is the trail, not the heroics.
+
+---
+
+## Log
+
+_(empty — fill as incidents occur)_

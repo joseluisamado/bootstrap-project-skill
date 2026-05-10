@@ -1,0 +1,87 @@
+# PUBLISH — releasing {{project_name}}
+
+This guide covers the release process for {{project_name}} — a library, not a service.
+
+For services with deployments, see `DEPLOY.md` instead.
+
+---
+
+## Release flow
+
+1. **Update CHANGELOG**
+   ```bash
+   $EDITOR CHANGELOG.md
+   # Move [Unreleased] entries under a new `## [X.Y.Z] — YYYY-MM-DD` heading.
+   ```
+
+2. **Run pre-flight checks**
+   ```bash
+   make check
+   ```
+   All green or no release.
+
+3. **Bump VERSION**
+   ```bash
+   make version-bump LEVEL=patch  # or minor / major
+   ```
+   This propagates to all configured manifest files.
+
+4. **Build artifacts**
+   ```bash
+   make build
+   ```
+
+5. **Tag**
+   ```bash
+   git tag -a "v$(cat VERSION)" -m "release v$(cat VERSION)"
+   ```
+
+6. **Test the artifact**
+   {{TODO: install the built artifact in a fresh environment, run the smoke tests.}}
+
+7. **Push**
+   ```bash
+   git push --tags
+   ```
+
+8. **Publish to package registry**
+   {{TODO: publish command, e.g. `uv publish`, `pnpm publish`, `cargo publish`, etc.}}
+
+---
+
+## How users install
+
+```bash
+{{TODO: install command for users}}
+```
+
+---
+
+## Versioning policy
+
+{{project_name}} follows [Semantic Versioning](https://semver.org/):
+
+- **MAJOR** — breaking API changes.
+- **MINOR** — new features, backwards-compatible.
+- **PATCH** — bug fixes, no API changes.
+
+Pre-1.0: anything may change. Post-1.0: breaking changes require a major version bump.
+
+---
+
+## Release checklist (full)
+
+Before tagging:
+
+- [ ] CHANGELOG updated.
+- [ ] VERSION bumped.
+- [ ] All `make check` green.
+- [ ] Documentation reflects the new release.
+- [ ] Pre-1.0 → 1.0 transition: review the public API, mark anything not-stable as such.
+- [ ] Built artifact installs cleanly in a fresh environment.
+
+After tagging:
+
+- [ ] `git push --tags`
+- [ ] Published to package registry.
+- [ ] GitHub Release prose written (paste from CHANGELOG section).

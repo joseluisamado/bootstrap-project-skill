@@ -1,0 +1,79 @@
+# SECURITY-REVIEW — {{project_name}}
+
+This document records the manual security review carried out before the v1.0 tag (or before opening to a broader audience). It enumerates surfaces that were audited, findings, fixes applied, and known limitations operators should understand.
+
+> Stub at bootstrap. Populate before any release that exposes {{project_name}} to a network beyond your trusted local hosts.
+
+Scope: {{TODO: e.g. "backend (`backend/src/`), frontend (`frontend/src/`), runtime configuration, dependency lockfiles"}}. Audit performed against commit `{{TODO}}` on {{TODO: date}}.
+
+---
+
+## Threat model
+
+{{TODO: state the realistic adversaries and explicitly list what is *not* modeled. Example shape:}}
+
+The realistic adversaries are:
+- **{{TODO}}** — goal: ...
+- **{{TODO}}** — goal: ...
+
+We explicitly **do not** model:
+- An attacker with shell access on the host.
+- {{TODO}}.
+
+---
+
+## What was audited
+
+| Surface | Files |
+|---|---|
+| {{TODO}} | {{TODO}} |
+
+---
+
+## Findings and fixes
+
+Severity scheme: **P1** = exploitable in the threat model; **P2** = exploitable lower-impact; **P3** = hardening; **info** = notable but not actionable.
+
+### Finding template
+
+### N. P? — short title (status: FIXED / DEFERRED / WONT-FIX)
+
+{{TODO: narrative — what's the issue, why it matters, how it manifests.}}
+
+**Fix**: {{TODO}}.
+
+---
+
+## What I checked but found OK
+
+- {{TODO: specific item, with one-line "why OK"}}.
+- ...
+
+---
+
+## Known limitations (deliberate, documented)
+
+These are **not bugs** — they are limits of the current scope. Operators who can't accept them should wait for the relevant milestone or apply external mitigations.
+
+### L-1. {{TODO}}
+
+{{TODO}}.
+
+---
+
+## How to reproduce the review
+
+```bash
+{{TODO: commands to re-run the audit (lint, type, tests, pip-audit, pnpm audit, etc.)}}
+```
+
+---
+
+## Sign-off
+
+The findings above were addressed in this review pass. All pre-flight checks pass:
+
+- {{TODO: per-component status}}
+
+Reviewer: {{TODO: name or "agent (machine-assisted manual review)"}}.
+Date: {{TODO}}.

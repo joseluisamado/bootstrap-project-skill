@@ -1,0 +1,36 @@
+# Contributing to {{project_name}}
+
+This is a living doc. If something is unclear, fix it.
+
+## Setup
+
+1. Clone the repo.
+2. Run `./scripts/setup-dev.sh` (installs pre-commit hooks, runs `make install`).
+3. Read [`CLAUDE.md`](./CLAUDE.md) for the conventions.
+
+## Pre-flight
+
+Before opening a PR (or pushing to main, for solo work):
+
+```bash
+make check
+```
+
+This runs format / lint / typecheck / tests across all components. CI runs the same commands.
+
+See `CLAUDE.md` §3.4 (and §4.4 if applicable) for the pre-merge checklist.
+
+## Sending changes
+
+- Open a PR against `main`. Branches: `feat/...`, `fix/...`, `refactor/...`, `docs/...`.
+- Conventional Commits in the message body. See `CLAUDE.md` §6.2 for examples.
+- Each PR should leave the `make check` green and update `CHANGELOG.md` under `[Unreleased]` if user-visible.
+- For non-trivial design changes, mention them in the PR description and add a `D-NN` entry to `docs/ARCHITECTURE.md` "Key decisions".
+
+## Reporting bugs
+
+Open an issue with reproduction steps. For security vulnerabilities, see [`SECURITY.md`](./SECURITY.md) — do not open public issues.
+
+## Questions
+
+If you're not sure whether to do X, open an issue describing the option you're considering. Cheap to ask, expensive to refactor.

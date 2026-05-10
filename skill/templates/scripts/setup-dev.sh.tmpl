@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# setup-dev.sh — first-time dev environment setup.
+#
+# Idempotent — safe to re-run.
+
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+echo "→ Installing pre-commit hooks..."
+if command -v pre-commit >/dev/null 2>&1; then
+    pre-commit install
+    pre-commit install --hook-type commit-msg 2>/dev/null || true
+else
+    echo "  ⚠ pre-commit not found. Install via 'pipx install pre-commit' or 'brew install pre-commit'."
+fi
+
+echo "→ Installing dependencies..."
+make install
+
+echo "→ Running doctor..."
+make doctor
+
+echo
+echo "✓ Setup complete."
+echo
+echo "Next:"
+echo "  make help     — see all targets"
+{{#if has_compose}}
+echo "  make dev      — start the dev stack"
+{{/if}}
+echo "  make check    — run pre-flight checks"

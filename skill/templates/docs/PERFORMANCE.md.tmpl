@@ -1,0 +1,61 @@
+# PERFORMANCE — measured numbers vs targets
+
+{{project_name}}'s non-functional requirements live in [`PROJECT.md`](./PROJECT.md). Quoted here for convenience:
+
+> {{TODO: copy the perf NFRs from PROJECT.md verbatim, including the date stamps.}}
+
+This document reports a **smoke benchmark** — a quick sanity check that nothing is catastrophically slow on a developer-class machine. It is not a substitute for measuring on the actual deployment hardware.
+
+For real-corpus-on-target-hardware numbers, run the same script on the deployment box and compare.
+
+---
+
+## Reproducing
+
+```bash
+{{TODO: command to run the smoke bench (e.g. `bash scripts/smoke_bench.sh`)}}
+```
+
+---
+
+## Results — {{TODO: date}}
+
+Hardware: {{TODO}}. Corpus: {{TODO}}.
+
+| Endpoint | Median | Max | Target |
+|---|---:|---:|---|
+| {{TODO}} | {{TODO}} | {{TODO}} | {{TODO}} |
+
+Idle memory: **{{TODO: e.g. 81 MiB}}** (target: **{{TODO}}**).
+
+---
+
+## What this doesn't measure
+
+- **Target-hardware numbers.** Targets are calibrated to {{TODO: deployment hardware}}. On laptop-class hardware, anything that fits in cache or hits an SSD will look fast. Re-run on the deployment box before claiming targets are met.
+
+- **Realistic-scale corpus.** The smoke run uses a small corpus. To stress-test, point the bench at a larger fixture set.
+
+- **Save / write latency.** {{TODO: if applicable, why writes aren't measured here.}}
+
+- **Cold start.** All numbers above are warm. Cold-start latency is typically 2–5× the warm number.
+
+- **Concurrent load.** The script is sequential. A real concurrency benchmark matters for multi-user deployments.
+
+- **Frontend rendering.** {{TODO: if applicable.}}
+
+---
+
+## How to extend the smoke bench
+
+If a future change introduces a new perf-sensitive endpoint, add a measurement to the script. Keep the script under ~100 lines — if benchmarking grows real teeth, fold it into a proper harness (locust, k6, or your stack's equivalent) instead of bloating the smoke script.
+
+---
+
+## When to re-run
+
+- Before tagging a release.
+- After any change to: {{TODO: list of perf-sensitive files / modules}}.
+- After bumping {{TODO: list of perf-sensitive deps}}.
+
+If a number regresses by >2× without a known cause, investigate before merging. The current numbers may be a long way under target, so a 2× regression is still inside the budget — but it's a useful early-warning threshold.

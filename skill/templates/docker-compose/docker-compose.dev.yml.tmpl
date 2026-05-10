@@ -1,0 +1,39 @@
+# Dev overlay for docker-compose.yml.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile dev up
+#
+# Or via the Makefile:
+#   make dev / make up-dev / make rebuild-dev
+#
+# This file overlays `api` to bind-mount the source tree and run the reloader,
+# so backend edits hot-reload in the container exactly like the frontend dev
+# server does for the frontend. The base docker-compose.yml is unchanged and
+# is used as-is in production.
+
+services:
+{{#if has_backend}}
+  api:
+    volumes:
+      - {{project_slug}}-data:/var/lib/{{project_slug}}
+      - ./{{backend_dir}}/src:/app/src
+{{#if has_python}}
+    # PYTHONPATH puts the bind-mounted source ahead of the baked-in site-packages
+    # copy, so edits on the host take effect on reload. The base Dockerfile
+    # `pip install`s the package at build time so the wheel is also present and
+    # we can ship the prod image unchanged.
+    environment:
+      PYTHONPATH: /app/src
+    command:
+      [
+        "{{python_dev_command}}",
+        "--reload",
+        "--reload-dir",
+        "/app/src",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8080",
+      ]
+{{/if}}
+{{/if}}

@@ -1,0 +1,81 @@
+# {{project_name}} — Project Charter
+
+## Audience
+
+{{audience}}
+
+## Vision
+
+{{TODO: one or two paragraphs. What does this project do, and what does it deliberately reject? The vision is the load-bearing prose that the rest of this document anchors to.}}
+
+## Background
+
+{{TODO: short narrative on why this project exists. What gap does it fill? What did you survey before deciding to build it? Keep it to a few paragraphs; comparison tables live in the README, not here.}}
+
+## Principles
+
+These are decision rules, not aspirations. When a feature request conflicts with a principle, the principle wins; the feature is redesigned or dropped.
+
+To change a principle: edit it here, then update any rules in `CLAUDE.md` that cite it, then commit both. Never weaken a principle to make a feature land.
+
+{{principles_list}}
+
+## Goals
+
+### Must have (v1.0)
+
+{{TODO: bullet list of must-have capabilities. Items here gate the v1.0 release.}}
+
+- ...
+- ...
+
+### Should have (v1.x)
+
+{{TODO: bullet list of capabilities planned for the v1 cycle but not blocking v1.0.}}
+
+- ...
+
+(Anything beyond v1.x lives in [`ROADMAP.md`](./ROADMAP.md), not here.)
+
+## Non-goals
+
+These are forever-no, by design. They are not "we'll do it later" — they are "we will not do it."
+
+- {{TODO: explicit non-goal #1, with a one-line reason}}
+- ...
+
+## Functional requirements
+
+| ID | Requirement | Priority |
+|---|---|---|
+| F-01 | {{TODO}} | Must |
+| F-02 | {{TODO}} | Must |
+| F-03 | {{TODO}} | Should |
+
+(Add rows as you discover them. F-NN numbers are stable; once assigned, never reused.)
+
+## Non-functional requirements
+
+Targets are stamped with the date they were set so they're revisitable.
+
+- **Performance** (set: {{date_today}}): {{TODO: e.g. "page loads under 200 ms on a Pi 4"}}
+- **Footprint** (set: {{date_today}}): {{TODO: e.g. "memory under 512 MB at idle"}}
+- **Portability** (set: {{date_today}}): {{TODO: e.g. "runs on any host with Docker Engine 24+"}}
+- **Privacy** (set: {{date_today}}): No telemetry, no analytics. See [`PRIVACY.md`](./PRIVACY.md).
+- **Data portability** (set: {{date_today}}): {{TODO: e.g. "user content remains usable without {{project_name}} — it's just files"}}
+- **Backup-friendliness** (set: {{date_today}}): {{TODO}}
+
+## Success criteria
+
+{{project_name}} v1.0 is successful when:
+
+1. {{TODO: a concrete, observable success criterion}}
+2. ...
+3. ...
+
+## Out of scope
+
+For-this-version, not forever. Items here are eligible for future versions; non-goals above are not.
+
+- {{TODO}}
+- ...

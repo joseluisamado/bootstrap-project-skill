@@ -1,0 +1,235 @@
+# CLAUDE.md — Operating manual for Claude Code
+
+You are working on **{{project_name}}**, {{tagline_short}}.
+
+Read [`docs/PROJECT.md`](./docs/PROJECT.md) and [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) before making non-trivial changes. The "Principles" section of `docs/PROJECT.md` is not aspirational — it states decision rules that override stylistic or convenience considerations.
+
+This file is your operating manual: project orientation, conventions, the things that must not break, and the pre-flight checks before declaring work done.
+
+---
+
+## 1. Orientation
+
+**Layout**:
+
+```
+{{project_slug}}/
+├── {{layout_tree}}
+├── docs/
+│   ├── PROJECT.md            Vision, principles, non-goals
+│   ├── ARCHITECTURE.md       Tech stack, components, data model, decisions
+│   ├── ROADMAP.md            Milestones M0 → MN
+│   ├── PROGRESS.md           Update this when you finish something
+│   ├── DEPLOY.md             Production deployment guide
+│   ├── BACKUP.md             Backup & restore procedures
+│   ├── SECURITY-REVIEW.md    Internal security audit
+│   ├── PERFORMANCE.md        Measured numbers vs NFRs
+│   ├── INCIDENTS.md          Append-only incident log
+│   └── PRIVACY.md            Data and telemetry stance
+├── README.md
+└── CLAUDE.md                 You are here.
+```
+
+**Mental model**: {{TODO: one-paragraph description of how the system works at the ten-thousand-foot level. What is this project a thin layer over? What's the input, what's the output, what's the canonical state?}}
+
+---
+
+## 2. Inviolable rules
+
+Breaking any of these is a regression, regardless of test coverage. Treat as if they were enforced by a build gate.
+
+**Lifecycle note**: rules are inviolable in the sense that *breaking them silently is a bug*. To change a rule, edit the principle in [`docs/PROJECT.md`](./docs/PROJECT.md), then update the rule here, then commit both. Never weaken a rule to make a feature land.
+
+{{rules_list}}
+
+---
+
+## 3. Working in the {{primary_layer_name}}
+
+{{primary_layer_path}}. {{primary_layer_description}}.
+
+### 3.1 Set up
+
+```bash
+{{primary_setup_command}}
+```
+
+### 3.2 Run
+
+```bash
+{{primary_run_command}}
+
+# Or via docker compose:
+docker compose --profile dev up {{primary_layer_name}}
+```
+
+### 3.3 Pre-flight checks (run before declaring work done)
+
+```bash
+{{primary_preflight_commands}}
+```
+
+CI runs all of these. If any of them are red, work isn't done.
+
+### 3.4 Pre-merge checklist
+
+Before pressing "merge" (or `git push` to main, for solo work):
+
+- [ ] All §3.3 checks green.
+- [ ] CHANGELOG entry added under `[Unreleased]` if user-visible.
+- [ ] Docs updated if behavior changed (`docs/ARCHITECTURE.md` for design changes; `docs/DEPLOY.md` for ops changes).
+- [ ] PROGRESS entry added with a pre-flight sign-off line.
+- [ ] No new `{{TODO}}` markers introduced without an issue / backlog entry.
+
+### 3.5 Conventions
+
+{{primary_conventions}}
+
+---
+
+{{#if has_secondary_layer}}
+## 4. Working in the {{secondary_layer_name}}
+
+{{secondary_layer_path}}. {{secondary_layer_description}}.
+
+### 4.1 Set up
+
+```bash
+{{secondary_setup_command}}
+```
+
+### 4.2 Run
+
+```bash
+{{secondary_run_command}}
+```
+
+### 4.3 Pre-flight checks
+
+```bash
+{{secondary_preflight_commands}}
+```
+
+### 4.4 Pre-merge checklist
+
+Same as §3.4.
+
+### 4.5 Conventions
+
+{{secondary_conventions}}
+
+---
+{{/if}}
+
+## 5. Working with the docker stack
+
+```bash
+docker compose --profile dev up        # everything in dev mode
+docker compose --profile dev up -d     # detached
+docker compose logs -f {{primary_layer_name}}
+docker compose down                    # stop everything
+docker compose down -v                 # ★ careful: removes volumes
+```
+
+The drawio container (if used) is a vanilla upstream image. We do not fork or modify it.
+
+---
+
+## 6. Commits and branches
+
+### 6.1 Branches
+
+- `main` — protected, always green CI
+- `feat/<short-name>` — feature work
+- `fix/<short-name>` — bugfix
+- `refactor/<short-name>` — non-functional change
+- `docs/<short-name>` — docs only
+
+### 6.2 Commit messages
+
+Conventional Commits, lowercase scope:
+
+```
+feat({{primary_layer_name}}): add the X endpoint
+fix({{primary_layer_name}}): handle empty input
+refactor({{primary_layer_name}}): extract path validation
+docs(architecture): clarify save lifecycle
+chore(deps): bump {{example_dep}}
+test({{primary_layer_name}}): add round-trip fixture for tables
+```
+
+Body wrapped at 72 cols. Reference issues with `Closes #N` or `Refs #N`.
+
+**Do not include "Co-authored-by: Claude" or similar lines.** Commits are authored by the human running you.
+
+{{#if has_user_content_subrepos}}
+### 6.3 Two distinct git contexts
+
+There are **two repositories** at play. Don't confuse them.
+
+| | Project repo | User-content repo |
+|---|---|---|
+| Path | the project root | {{user_content_path}} |
+| Contains | source code, this CLAUDE.md, etc. | the user's data |
+| Who commits | developers (humans + Claude Code) | {{project_name}} itself, on every save |
+| Author | conventional commits | "{{project_name}} <{{project_slug}}@localhost>" |
+
+When a user says "commit your work", they almost always mean the project repo. When they say "save", that goes through {{project_name}}'s save lifecycle and produces a commit in the user-content repo. If unclear, ask.
+
+{{/if}}
+
+---
+
+## 7. Updating project documents
+
+Several docs in this repo are living documents. Keep them current:
+
+- **`docs/PROGRESS.md`** — update at the end of any non-trivial chunk of work. Status block at the top, dated log entry, decisions if any.
+- **`docs/ROADMAP.md`** — only update with explicit user agreement. Don't reorder or add milestones unilaterally.
+- **`docs/ARCHITECTURE.md`** — update when an architectural choice changes. The "Open questions" section shrinks as decisions land — move resolved items into the "Resolved" sub-section with a date stamp.
+- **`docs/PROJECT.md`** — rarely changes. Treat the principles section as constitutional; propose changes, don't make them silently.
+- **`README.md`** — update when the user-facing quickstart changes.
+- **`CHANGELOG.md`** — update as part of every user-visible change. The `[Unreleased]` section accumulates until a release; `make release` (or manual edit) moves it under a versioned heading.
+- **`CLAUDE.md`** (this file) — update when conventions change or when you find yourself repeatedly correcting the same thing.
+
+---
+
+## 8. When to stop and ask
+
+**Default to action when:**
+- Editing files in your scope.
+- Fixing local linter / type / test errors.
+- Refactoring within a single file.
+- Adjusting docs to match code.
+
+**Stop and ask when:**
+
+- A task implies relaxing one of the **Inviolable rules** in §2.
+- A task requires a new top-level dependency (a new framework, a new database, a new container in the stack). Confirm before adding.
+- A task crosses the project / user-content repo boundary in a non-obvious way (if §6.3 applies).
+- The architecture document doesn't cover the case and the choice has long-term implications. Bias toward asking; cheap to clarify, expensive to refactor.
+- A test would need to be deleted or weakened to make a change pass. Almost always indicates the change is wrong, not the test.
+
+---
+
+## 9. Things that look fine but aren't
+
+A short collection of recurring traps, accumulated over time. Add to it whenever you find a new one — this is the place future-you will dump traps as you find them.
+
+(Empty at bootstrap. Each entry: a short paragraph stating what the trap looks like and why it isn't fine.)
+
+- _(empty — fill as patterns emerge)_
+
+---
+
+## 10. Quick reference
+
+{{quick_reference_table}}
+
+When in doubt: re-read the "Principles" section of [`docs/PROJECT.md`](./docs/PROJECT.md), then the "Overview" and "Components" sections of [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md). Most questions are answered there.
+
+---
+
+## 11. Updating this manual
+
+When you find yourself correcting the same thing twice, add a §9 entry. When a new convention sticks for two weeks, add it to the relevant numbered section (§3 / §4 / §6). When a rule needs to change, edit the principle in PROJECT.md first, then come back here. The doc is meant to evolve as conventions accumulate.

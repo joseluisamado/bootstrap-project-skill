@@ -1,0 +1,55 @@
+# ROADMAP — {{project_name}}
+
+A milestone-based plan, not a calendar. Each milestone is a coherent slice of value that can be released and used. We finish each one before starting the next.
+
+> **Dates are deliberately omitted.** Pace will vary. Add `(date)` next to a milestone heading when it ships, and link to the version it shipped at: `✅ ({{date_today}}, shipped at v0.X.0)`.
+
+> **Polish milestones (e.g. M2.5) may be inserted between feature milestones** when real usage surfaces rough edges. They are first-class, not deviations.
+
+---
+
+{{milestones_list}}
+
+---
+
+## Beyond v1: planned but not committed
+
+These are tracked here so the v1 architecture doesn't accidentally foreclose them. They are not commitments.
+
+### M{{TODO: post-v1 milestone}}
+
+{{TODO: short description of a major future direction, e.g. multi-user, plugin system, etc.}}
+
+---
+
+## Anytime backlog
+
+Small items that can ship between milestones without a dedicated milestone. Each item is one line; if it grows, promote to a milestone.
+
+- {{TODO: e.g. "CLI utility for X"}}
+- ...
+
+---
+
+## What we will not do
+
+Restating from [`PROJECT.md`](./PROJECT.md) "Non-goals" because roadmap docs are where scope creep gets introduced:
+
+- ❌ {{TODO: explicit non-thing #1}}
+- ❌ {{TODO: explicit non-thing #2}}
+- ...
+
+If a future user request runs into this list, the answer is "no, by design."
+
+---
+
+## Per-milestone shape
+
+Each milestone has:
+
+- **Goal** — one paragraph stating what this milestone delivers.
+- **Checklist** — `- [ ]` items, each a discrete deliverable.
+- **Exit criteria** — one sentence stating what "done" means. Read it before starting; if you can't write a clear exit criterion, the milestone is too vague.
+- **Kill criteria** (optional) — one sentence: "if this turns out to be true, stop and re-plan." Use for milestones with genuine uncertainty.
+
+When a milestone closes, mark with `✅ (date, shipped at vX.Y.Z)` so the roadmap ties to release tags.

@@ -1,0 +1,26 @@
+# scripts/
+
+One-off utilities that aren't part of the runtime.
+
+## Conventions
+
+- **One script per file**, not one big "tools" module. Each script is self-documenting and runnable in isolation.
+- **Idempotent or `--dry-run` by default**. Most scripts that mutate state should accept `--dry-run` and either do nothing or describe what they would do. Scripts that are pure reads or already idempotent skip this.
+- **Runnable via Makefile target**. Each script gets a `make <name>` target so it's discoverable through `make help`. If applicable, also a `make <name>-dry`.
+- **No shared state between scripts**. Scripts may import from a small shared module if literally needed; otherwise they stand alone.
+- **Bash for shell-shaped tasks; Python (or your stack's language) for anything with parsing or filesystem traversal.**
+
+## Inventory
+
+| Script | Purpose |
+|---|---|
+| `sync_version.py` | Propagate the canonical `VERSION` file to per-stack manifests. |
+| `setup-dev.sh` | First-time dev environment setup — installs pre-commit hooks, runs `make install`, runs `make doctor`. |
+| _(add your own here)_ | |
+
+## Adding a script
+
+1. Create `scripts/<name>.py` (or `.sh`). Add a docstring/comment header describing what it does and how to run it.
+2. If it mutates state, add a `--dry-run` flag.
+3. Add a `make <name>` target to the Makefile under "project-specific" at the bottom.
+4. Update this README's inventory table.

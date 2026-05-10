@@ -1,0 +1,86 @@
+# RUNBOOK — {{project_name}}
+
+Operational playbook. When something breaks at 3 a.m., this is the first place you look.
+
+> Pair with `docs/INCIDENTS.md` (post-incident log) and `docs/DEPLOY.md` (steady-state operation).
+
+---
+
+## First, check
+
+When something looks wrong, run these in order before anything else:
+
+```bash
+docker compose ps                        # are services running and healthy?
+docker compose logs --tail=100 api       # recent errors?
+curl -sf http://localhost:${HTTP_PORT:-8080}/healthz  # API reachable?
+df -h /var/lib/docker                    # disk space?
+docker stats --no-stream                 # CPU / memory pressure?
+```
+
+90% of incidents are answered by these five commands.
+
+---
+
+## Common scenarios
+
+### Service is unhealthy
+
+**Symptom**: `docker compose ps` shows status `unhealthy` for a container.
+
+**Steps**:
+1. `docker compose logs --tail=200 <service>` — error pattern visible?
+2. If yes, fix the underlying issue.
+3. If no, `docker compose restart <service>` and re-check.
+4. If it persists, check disk space and memory.
+5. If still unresolved, `docker compose down && docker compose up -d` (recreates containers, not volumes).
+
+### Disk filling up
+
+**Symptom**: writes failing with "no space left on device".
+
+**Steps**:
+1. `df -h /var/lib/docker` — confirm.
+2. `docker system df` — what's taking the space (images / volumes / build cache)?
+3. `docker image prune -a` — remove unused images.
+4. `docker builder prune` — remove build cache.
+5. Check log rotation in `docker-compose.yml` — should be set to 10m × 5 files.
+6. If a volume is genuinely full, identify which one and either expand or rotate per BACKUP.md.
+
+### {{TODO: project-specific scenario #1}}
+
+**Symptom**: {{TODO}}.
+
+**Steps**:
+1. {{TODO}}.
+
+### {{TODO: project-specific scenario #2}}
+
+**Symptom**: {{TODO}}.
+
+**Steps**:
+1. {{TODO}}.
+
+---
+
+## Recovery procedures
+
+For data-loss scenarios, see [`BACKUP.md`](./BACKUP.md). The three scenarios there (single item / lost volume / lost host) cover the recovery paths.
+
+---
+
+## Escalation
+
+For a solo operator: there's no escalation. If you're stuck, the steps are:
+1. Search `docs/INCIDENTS.md` for similar past incidents.
+2. Read the relevant component code in `docs/ARCHITECTURE.md` order.
+3. Open an issue against the project even if you're the only user — writing it down clarifies thinking.
+4. If recovery requires destructive action (`docker volume rm`, `git reset --hard`), pause and triple-check first.
+
+---
+
+## After the incident
+
+1. Add a dated entry to [`INCIDENTS.md`](./INCIDENTS.md).
+2. If the runbook didn't help, update it.
+3. If a fix landed, add a CHANGELOG entry under `Security` or `Fixed`.

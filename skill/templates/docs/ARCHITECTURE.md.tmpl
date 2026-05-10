@@ -1,0 +1,123 @@
+# {{project_name}} — Architecture
+
+## Contents
+
+1. [Overview](#overview)
+2. [System diagram](#system-diagram)
+3. [Trust boundaries](#trust-boundaries)
+4. [Components](#components)
+5. [Technology choices](#technology-choices)
+6. [Decisions deliberately deferred](#decisions-deliberately-deferred)
+7. [Data model](#data-model)
+8. [Failure modes](#failure-modes)
+9. [HTTP API](#http-api)
+10. [Frontend](#frontend)
+11. [Deployment topology](#deployment-topology)
+12. [Key decisions](#key-decisions)
+13. [Open questions](#open-questions)
+
+## Overview
+
+{{TODO: 2–3 paragraphs describing what this system is at the architecture level. What are the major pieces, what's the data flow, what's stateful vs derived?}}
+
+## System diagram
+
+```mermaid
+flowchart TB
+    %% TODO: replace with real components
+    User[User]
+    App[{{project_name}}]
+    User -- HTTP --> App
+```
+
+## Trust boundaries
+
+Where data crosses from trusted to untrusted (or vice versa). Identifies the surfaces where security review work focuses.
+
+- **{{TODO: e.g. Network ingress}}** — {{TODO: what crosses, what's validated}}
+- **{{TODO}}** — {{TODO}}
+
+## Components
+
+### {{TODO: component name, e.g. `api`}}
+
+{{TODO: what it does, what it owns, what it talks to.}}
+
+### {{TODO: another component}}
+
+...
+
+## Technology choices
+
+| Layer | Choice | Why |
+|---|---|---|
+| Language | {{TODO}} | {{TODO: a *specific* property of the tool that mattered, not just "I know it"}} |
+| Web framework | {{TODO}} | {{TODO}} |
+| ... | ... | ... |
+
+## Decisions deliberately deferred
+
+These are decisions we *could* make now but chose not to. Different from "Open questions" (we don't know) and from "Non-goals" (we won't do).
+
+- **{{TODO}}** — deferred because {{TODO}}.
+- ...
+
+## Data model
+
+{{TODO: describe the canonical data shape. If the project's data lives in a database, describe the schema. If it lives in files, describe the layout. If it has both, describe both.}}
+
+## Failure modes
+
+| Component | What fails | User-visible behavior | Recovery |
+|---|---|---|---|
+| {{TODO}} | {{TODO}} | {{TODO}} | {{TODO}} |
+
+## HTTP API
+
+{{TODO: if applicable. Tables per resource. Each row: method / path / description.}}
+
+## Frontend
+
+{{TODO: if applicable. Routes, state stores, component tree at a high level.}}
+
+## Deployment topology
+
+```mermaid
+flowchart LR
+    %% TODO: production deployment shape
+```
+
+See [`DEPLOY.md`](./DEPLOY.md) for the operational guide.
+
+## Key decisions
+
+The following are decisions worth pinning down explicitly. Each is revisitable but should not be revisited casually.
+
+Format: each decision has a number (D-NN), a date, a short title, a Why, and a Consequence.
+
+### D-01 — {{TODO: short title}} ({{date_today}})
+
+{{TODO: 1–2 sentences stating the decision.}}
+
+**Why:** {{TODO: the reason this decision was made. What does it earn? What does it cost?}}
+
+**Consequence:** {{TODO: what follows from accepting this. What are we now committed to?}}
+
+---
+
+(Add D-02, D-03, ... as decisions land. Each decision is dated. To supersede a decision, add a new one citing the old one — never edit history.)
+
+> When this section grows past ~15 entries, consider extracting to `docs/decisions/NNNN-title.md` (Michael Nygard ADR format). See `patterns/adr-vs-inline-decisions.md` in the bootstrap-project skill.
+
+## Open questions
+
+Format: each question records the date the question was raised and the current leaning (if any).
+
+- **{{TODO: question phrased as a question?}}** (Leaning, {{date_today}}: {{TODO: best current guess, may change}})
+- ...
+
+### Resolved
+
+When an open question is resolved, move a one-line summary here with the date and a pointer to the relevant section above.
+
+- {{date}}: ...

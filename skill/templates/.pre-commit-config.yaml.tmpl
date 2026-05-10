@@ -1,0 +1,64 @@
+# Pre-commit hooks. Run on every commit; same checks as CI for fast feedback.
+#
+# Setup: `pre-commit install` (or run `./scripts/setup-dev.sh`).
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ["--maxkb=512"]
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+{{#if secret_scanning_precommit}}
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+{{/if}}
+
+{{#if has_python}}
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.7.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^{{backend_dir}}/
+      - id: ruff-format
+        files: ^{{backend_dir}}/
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        files: ^{{backend_dir}}/src/
+        args: [--strict, --config-file={{backend_dir}}/pyproject.toml]
+        # Add deps that mypy needs to analyze the code:
+        # additional_dependencies:
+        #   - "fastapi>=0.115"
+        #   - "pydantic>=2.9"
+{{/if}}
+
+{{#if has_node}}
+  # Local hooks for prettier/eslint shell out to `cd {{frontend_dir}} && ...`.
+  # This is intentional: the hooks need the project's pinned versions of
+  # prettier/eslint, not standalone mirrors that drift.
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier
+        language: system
+        entry: bash -c 'cd {{frontend_dir}} && pnpm exec prettier --write "$@"' --
+        files: ^{{frontend_dir}}/src/.*\.(ts|vue|css|tsx|js|jsx)$
+
+      - id: eslint
+        name: eslint
+        language: system
+        entry: bash -c 'cd {{frontend_dir}} && pnpm exec eslint --fix "$@"' --
+        files: ^{{frontend_dir}}/src/.*\.(ts|vue|tsx|js|jsx)$
+{{/if}}

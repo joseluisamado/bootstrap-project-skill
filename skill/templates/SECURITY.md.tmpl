@@ -1,0 +1,35 @@
+# Security policy
+
+## Reporting a vulnerability
+
+If you have found a security vulnerability in {{project_name}}, please report it privately:
+
+**Email**: {{user_email}}
+
+Please include:
+
+- A description of the issue.
+- Reproduction steps.
+- Affected version(s).
+- Your assessment of impact.
+
+I'll acknowledge receipt within 7 days and aim to have a fix or mitigation available within 30 days for high-severity issues.
+
+**Do not open a public issue for security vulnerabilities.** This includes "I think this might be a vuln but I'm not sure" — err on the side of private disclosure first; we can move public if it turns out to be a non-issue.
+
+## Scope
+
+In scope:
+- The {{project_name}} codebase in this repository.
+- Default configurations shipped with the project.
+
+Out of scope:
+- Vulnerabilities in dependencies (report those upstream; we'll bump after a fix is released).
+- Issues requiring physical access to the host or attacker-controlled local code execution.
+- Misconfigurations of operator-controlled infrastructure (e.g. exposing the API to the public internet without auth — that's an L-N known limitation in `docs/SECURITY-REVIEW.md`, not a vulnerability).
+
+See [`docs/SECURITY-REVIEW.md`](./docs/SECURITY-REVIEW.md) for the threat model and known limitations.
+
+## Recognition
+
+I'll happily acknowledge your contribution in `CHANGELOG.md` and `docs/SECURITY-REVIEW.md` if you'd like.

@@ -1,0 +1,51 @@
+# Dependabot configuration.
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "ci"
+
+{{#if has_python}}
+  - package-ecosystem: "pip"
+    directory: "/{{backend_dir}}"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "backend"
+    # Group patch + minor bumps into a single PR to reduce noise.
+    groups:
+      backend-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+{{/if}}
+
+{{#if has_node}}
+  - package-ecosystem: "npm"
+    directory: "/{{frontend_dir}}"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "frontend"
+    groups:
+      frontend-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+{{/if}}
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+      - "docker"

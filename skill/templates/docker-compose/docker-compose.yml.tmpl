@@ -1,0 +1,74 @@
+# Base compose file. Production-default settings.
+#
+# Dev: layer docker-compose.dev.yml on top.
+# Prod: layer docker-compose.prod.yml; optionally docker-compose.caddy.yml for TLS.
+
+services:
+{{#if has_backend}}
+  api:
+    build: ./{{backend_dir}}
+    image: {{project_slug}}-api:dev
+    restart: unless-stopped
+    environment:
+      # Project-specific env vars. Document in .env.example.
+      {{TODO_env_vars}}
+    volumes:
+      - {{project_slug}}-data:/var/lib/{{project_slug}}
+    ports:
+      - "8092:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    # Uncomment for resource limits on a small host:
+    # mem_limit: 512m
+    # cpus: 1.0
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+{{/if}}
+
+{{#if has_frontend}}
+  frontend:
+    profiles: ["dev"]
+    build: ./{{frontend_dir}}
+    image: {{project_slug}}-frontend:dev
+    environment:
+      VITE_API_BASE: http://api:8080
+      # Keep pnpm's content-addressable store out of the bind-mounted source
+      # tree — without these the store ends up at frontend/.pnpm-store and
+      # pollutes git status with thousands of files.
+      PNPM_STORE_DIR: /pnpm-store
+      PNPM_HOME: /pnpm-home
+    volumes:
+      - ./{{frontend_dir}}:/app
+      - /app/node_modules
+      - pnpm-store:/pnpm-store
+    ports:
+      - "8091:5173"
+    depends_on:
+      api:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+{{/if}}
+
+volumes:
+  # Single named volume holds all stateful data. Back this up to back up everything.
+  {{project_slug}}-data:
+{{#if has_frontend}}
+  pnpm-store:
+{{/if}}
+
+# Networks (uncomment for a multi-tier setup):
+# networks:
+#   internal:
+#     internal: true
+#   public:

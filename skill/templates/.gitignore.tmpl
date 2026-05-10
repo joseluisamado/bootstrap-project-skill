@@ -1,0 +1,64 @@
+# --- Universal ---
+.DS_Store
+Thumbs.db
+
+# --- Editor ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Env files (never commit) ---
+.env
+.env.local
+.env.*.local
+
+# --- Claude Code local overrides ---
+.claude/settings.local.json
+
+{{#if has_python}}
+# --- Python ---
+.venv/
+**/__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+{{/if}}
+
+{{#if has_node}}
+# --- Node ---
+node_modules/
+dist/
+.vite/
+.pnpm-store/
+.cache/
+{{/if}}
+
+{{#if has_go}}
+# --- Go ---
+vendor/
+*.test
+*.out
+{{/if}}
+
+{{#if has_rust}}
+# --- Rust ---
+target/
+Cargo.lock.bak
+{{/if}}
+
+# --- Project-specific ---
+{{#if has_user_content_subrepos}}
+# User-content sub-repos. These are their own git repos; do NOT commit them
+# as part of the project repo. See CLAUDE.md §6.3 for the two-repo distinction.
+{{user_content_path}}/
+{{/if}}
+
+# Add project-specific ignores below this line.

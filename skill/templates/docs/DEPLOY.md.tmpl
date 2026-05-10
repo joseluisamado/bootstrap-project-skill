@@ -1,0 +1,223 @@
+# DEPLOY — {{project_name}}
+
+This guide takes you from "empty server" to a running {{project_name}} on your own hardware.
+
+> Prerequisites assume Linux (Ubuntu / Debian / Fedora) but anything that runs Docker will do. Adjust paths and package names accordingly.
+
+## Is it alive? (60-second check)
+
+Once deployed, {{project_name}} is healthy when:
+
+```bash
+curl -sf http://localhost:${HTTP_PORT:-8080}/healthz
+```
+
+returns 200. The full deploy walkthrough is below.
+
+---
+
+## Architecture overview
+
+{{TODO: short paragraph describing what gets deployed and how. If the project clones git repos, manages SSH keys, or has any post-deploy admin step, summarize here.}}
+
+Docker volumes (not bind mounts) hold all stateful data so they survive container restarts and upgrades.
+
+---
+
+## 1. Prerequisites
+
+- A host with at least {{TODO: minimum specs}}.
+- Docker Engine 24+ and the `docker compose` plugin.
+- Git ≥ 2.40 (on the host, for checking out the project).
+- {{TODO: project-specific prereqs, e.g. "an SSH key pair for the wiki repo"}}
+- A domain name pointed at the host (optional but recommended for TLS).
+
+Check:
+
+```bash
+docker --version
+docker compose version
+```
+
+---
+
+## 2. Get the source
+
+```bash
+git clone https://github.com/<you>/{{project_slug}}.git /opt/{{project_slug}}
+cd /opt/{{project_slug}}
+```
+
+Pin to a released version rather than `main` for production:
+
+```bash
+git checkout v0.1.0          # whatever the latest released tag is
+```
+
+---
+
+## 3. Build the production images
+
+{{project_name}} currently builds images locally; there is no public registry yet.
+
+```bash
+make build-prod
+```
+
+This produces:
+
+```
+{{project_slug}}-api:0.1.0       {{project_slug}}-api:latest
+{{project_slug}}-frontend:0.1.0  {{project_slug}}-frontend:latest
+```
+
+---
+
+## 4. Configure the runtime
+
+Create `.env` next to the compose files (or copy from `.env.example`):
+
+```bash
+cp .env.example .env
+$EDITOR .env
+```
+
+> **Do not commit `.env`** — it's already in `.gitignore`.
+
+---
+
+## 5. Deploy
+
+Bring the stack up:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+Smoke-test:
+
+```bash
+curl -sf http://localhost:${HTTP_PORT:-8080}/healthz
+curl -sf http://localhost:${HTTP_PORT:-8080}/api/v1/info
+```
+
+---
+
+## 6. Initial setup
+
+{{TODO: post-deploy admin steps the user must do once after the first start. E.g. "create the first admin user", "add a git source", "configure SSH keys", etc. If the project has none, replace this section with "No initial setup needed."}}
+
+---
+
+## 7. Front with TLS (Caddy) — optional
+
+The repo ships a ready-to-use Caddy overlay (`docker-compose.caddy.yml` + `Caddyfile.example`) that runs Caddy as a sidecar container, terminates TLS with Let's Encrypt, and proxies to the production frontend. This is the recommended production setup — no separate Caddy install on the host.
+
+### 7a. Configure
+
+```bash
+cp Caddyfile.example Caddyfile
+# Edit: replace `wiki.example.com` with your domain
+$EDITOR Caddyfile
+```
+
+Make sure:
+- The domain's A/AAAA record points at this host.
+- Ports **80** and **443** are open on the firewall (and **443/udp** if you want HTTP/3).
+- Nothing else is bound to those ports on the host.
+
+### 7b. Start with the overlay
+
+```bash
+VERSION=$(cat VERSION) docker compose \
+    -f docker-compose.yml \
+    -f docker-compose.prod.yml \
+    -f docker-compose.caddy.yml \
+    up -d
+```
+
+The overlay drops the public port from the frontend (only Caddy is reachable from outside), adds a `caddy` container that mounts `./Caddyfile` read-only, and persists the issued certificate in the `caddy-data` named volume so restarts don't re-issue.
+
+Watch progress:
+
+```bash
+docker compose logs -f caddy
+```
+
+---
+
+## 8. Backups
+
+> See [`BACKUP.md`](./BACKUP.md) for the full backup & restore guide. tl;dr: back up the named Docker volumes (`{{project_slug}}-data` and `caddy-data`) plus your local `.env` and `Caddyfile`.
+
+---
+
+## 9. Upgrades
+
+```bash
+cd /opt/{{project_slug}}
+git fetch --tags
+git checkout v0.2.0          # the new release tag
+make build-prod
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+`up -d` recreates only the containers whose image changed. Named volumes are untouched.
+
+If a release introduces a content/data migration, the release notes will say so explicitly and ship a migration script under `scripts/`.
+
+---
+
+## 10. Operational notes
+
+### Production hardening checklist
+
+Before exposing {{project_name}} to a network:
+
+- [ ] Place behind a reverse proxy with TLS (Caddy overlay or your own).
+- [ ] Configure backups (per `BACKUP.md`) and run a test restore.
+- [ ] Set resource limits in `docker-compose.yml` if running on a shared host.
+- [ ] Review `docs/SECURITY-REVIEW.md` known limitations and apply external mitigations as needed.
+- [ ] Configure healthcheck monitoring (`/healthz` endpoint).
+- [ ] Set log rotation if using a custom logging driver.
+
+### Day-to-day
+
+- **Logs**: `docker compose logs -f api`. Logs include sync events, errors, and other operational signals.
+- **Healthchecks**: `/healthz` returns 200 when the API is ready.
+- **Resource limits**: the default stack has no limits set. On a small host, uncomment `mem_limit` and `cpus` in `docker-compose.yml`.
+
+---
+
+## 11. Tearing it down
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml down
+```
+
+Add `-v` to also remove the named volumes:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml down -v
+# ★ This deletes all data — make sure remote backups exist.
+```
+
+---
+
+## Troubleshooting
+
+### First, check
+
+When something looks wrong, look here in order:
+
+1. `docker compose ps` — are all services running and "healthy"?
+2. `docker compose logs --tail=100 api` — recent errors?
+3. `curl -sf http://localhost:${HTTP_PORT:-8080}/healthz` — is the API reachable?
+
+### Common symptoms
+
+**`502 Bad Gateway`**: the API container isn't healthy yet. `docker compose logs api` for the cause.
+
+**Port already in use**: another process is bound to the port. `lsof -i :PORT` to find it.
+
+**{{TODO: project-specific symptom}}**: {{TODO: cause}}. Fix: {{TODO}}.

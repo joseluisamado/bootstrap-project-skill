@@ -1,0 +1,269 @@
+# {{project_name}} — task runner
+#
+# Most targets are thin wrappers over language-specific tooling and
+# `docker compose`. Run `make help` for the menu.
+#
+# Convention: targets with `## description` after the colon appear in
+# `make help`. The awk recipe below parses this format.
+
+.DEFAULT_GOAL := help
+.PHONY: help \
+        install {{install_subtargets}} \
+        dev {{dev_subtargets}} \
+        check {{check_subtargets}} \
+        format {{format_subtargets}} \
+        lint {{lint_subtargets}} \
+        typecheck {{typecheck_subtargets}} \
+        test {{test_subtargets}} \
+        build {{build_subtargets}} \
+        up up-dev rebuild rebuild-dev down logs ps \
+        clean {{clean_subtargets}} \
+        version version-bump version-set sync-version \
+        build-prod release \
+        doctor {{#if gitea_mirror}}sync-ci{{/if}}
+
+{{#if has_backend}}
+BACKEND := {{backend_dir}}
+{{/if}}
+{{#if has_frontend}}
+FRONTEND := {{frontend_dir}}
+{{/if}}
+
+# Single source of truth for the project version. Release targets bump it
+# and propagate to {{version_targets}}.
+VERSION := $(shell cat VERSION 2>/dev/null)
+
+{{#if has_compose}}
+# Compose invocation: dev stacks layer docker-compose.dev.yml on top of the
+# base file so the api service gets a source bind-mount and a reloader.
+COMPOSE_DEV := docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile dev
+{{/if}}
+
+help: ## Show this help
+	@awk 'BEGIN {FS = ":.*##"; printf "Usage: make <target>\n\nTargets:\n"} \
+	      /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+
+# ---------- install ----------
+
+install: {{install_subtargets}} ## Install all dependencies
+
+{{#if has_backend}}
+install-backend: ## Install backend dependencies
+	cd $(BACKEND) && {{backend_install_command}}
+{{/if}}
+
+{{#if has_frontend}}
+install-frontend: ## Install frontend dependencies
+	cd $(FRONTEND) && {{frontend_install_command}}
+{{/if}}
+
+# ---------- dev ----------
+
+{{#if has_compose}}
+dev: ## Run the dev stack via docker compose
+	$(COMPOSE_DEV) up
+{{/if}}
+
+{{#if has_backend}}
+dev-backend: ## Run only the backend (no docker)
+	cd $(BACKEND) && {{backend_dev_command}}
+{{/if}}
+
+{{#if has_frontend}}
+dev-frontend: ## Run only the frontend dev server (no docker)
+	cd $(FRONTEND) && {{frontend_dev_command}}
+{{/if}}
+
+# ---------- pre-flight checks ----------
+
+check: {{check_subtargets}} ## Run all pre-flight checks (format + lint + types + tests)
+
+{{#if has_backend}}
+check-backend: format-backend lint-backend typecheck-backend test-backend ## Backend pre-flight (per CLAUDE.md §3.3)
+{{/if}}
+
+{{#if has_frontend}}
+check-frontend: lint-frontend typecheck-frontend test-frontend ## Frontend pre-flight (per CLAUDE.md §4.3)
+{{/if}}
+
+# ---------- format ----------
+
+format: {{format_subtargets}} ## Format all source
+
+{{#if has_backend}}
+format-backend:
+	cd $(BACKEND) && {{backend_format_command}}
+{{/if}}
+
+{{#if has_frontend}}
+format-frontend:
+	cd $(FRONTEND) && {{frontend_format_command}}
+{{/if}}
+
+# ---------- lint ----------
+
+lint: {{lint_subtargets}} ## Lint all source
+
+{{#if has_backend}}
+lint-backend:
+	cd $(BACKEND) && {{backend_lint_command}}
+{{/if}}
+
+{{#if has_frontend}}
+lint-frontend:
+	cd $(FRONTEND) && {{frontend_lint_command}}
+{{/if}}
+
+# ---------- typecheck ----------
+
+typecheck: {{typecheck_subtargets}} ## Type-check all source
+
+{{#if has_backend}}
+typecheck-backend:
+	cd $(BACKEND) && {{backend_typecheck_command}}
+{{/if}}
+
+{{#if has_frontend}}
+typecheck-frontend:
+	cd $(FRONTEND) && {{frontend_typecheck_command}}
+{{/if}}
+
+# ---------- test ----------
+
+test: {{test_subtargets}} ## Run all tests
+
+{{#if has_backend}}
+test-backend:
+	cd $(BACKEND) && {{backend_test_command}}
+{{/if}}
+
+{{#if has_frontend}}
+test-frontend:
+	cd $(FRONTEND) && {{frontend_test_command}}
+{{/if}}
+
+# ---------- build ----------
+
+build: {{build_subtargets}} ## Build production artifacts
+
+{{#if has_frontend}}
+build-frontend:
+	cd $(FRONTEND) && {{frontend_build_command}}
+{{/if}}
+
+# ---------- doctor ----------
+
+doctor: ## Verify dev environment is set up correctly
+	@echo "→ checking required tools..."
+	@command -v docker >/dev/null && echo "  ✓ docker" || echo "  ✗ docker (install required)"
+	@command -v docker compose >/dev/null && echo "  ✓ docker compose" || echo "  ✗ docker compose (install required)"
+{{#if has_python}}
+	@command -v python3 >/dev/null && echo "  ✓ python3 ($$(python3 --version))" || echo "  ✗ python3 (install required)"
+	@command -v uv >/dev/null && echo "  ✓ uv" || echo "  ⚠ uv (recommended for backend; install via 'curl -LsSf https://astral.sh/uv/install.sh | sh')"
+{{/if}}
+{{#if has_node}}
+	@command -v node >/dev/null && echo "  ✓ node ($$(node --version))" || echo "  ✗ node (install required)"
+	@command -v pnpm >/dev/null && echo "  ✓ pnpm ($$(pnpm --version))" || echo "  ⚠ pnpm (recommended for frontend; install via 'npm i -g pnpm')"
+{{/if}}
+	@echo
+	@echo "→ checking lockfile freshness..."
+{{#if has_python}}
+	@test -f $(BACKEND)/uv.lock && echo "  ✓ $(BACKEND)/uv.lock present" || echo "  ✗ $(BACKEND)/uv.lock missing (run 'make install-backend')"
+{{/if}}
+{{#if has_node}}
+	@test -f $(FRONTEND)/pnpm-lock.yaml && echo "  ✓ $(FRONTEND)/pnpm-lock.yaml present" || echo "  ✗ $(FRONTEND)/pnpm-lock.yaml missing (run 'make install-frontend')"
+{{/if}}
+
+{{#if has_compose}}
+# ---------- docker compose lifecycle ----------
+
+up: ## Start the prod-style stack (no dev overlays)
+	docker compose up -d
+
+up-dev: ## Start the dev stack, detached
+	$(COMPOSE_DEV) up -d
+
+rebuild: ## Rebuild images and start the prod-style stack, detached
+	docker compose up -d --build
+
+rebuild-dev: ## Rebuild images and start the dev stack, detached
+	$(COMPOSE_DEV) up -d --build
+
+down: ## Stop the stack
+	docker compose down
+
+logs: ## Tail logs from all services
+	docker compose logs -f
+
+ps: ## Show running services
+	docker compose ps
+{{/if}}
+
+# ---------- clean ----------
+
+clean: {{clean_subtargets}} ## Remove caches and build outputs
+
+{{#if has_backend}}
+clean-backend:
+	rm -rf $(BACKEND)/.venv $(BACKEND)/.pytest_cache $(BACKEND)/.mypy_cache $(BACKEND)/.ruff_cache
+	find $(BACKEND) -type d -name __pycache__ -exec rm -rf {} +
+{{/if}}
+
+{{#if has_frontend}}
+clean-frontend:
+	rm -rf $(FRONTEND)/node_modules $(FRONTEND)/dist $(FRONTEND)/.vite
+{{/if}}
+
+{{#if gitea_mirror}}
+# ---------- CI mirror ----------
+
+sync-ci: ## Copy .github/workflows/ci.yml to .gitea/workflows/ci.yml
+	@mkdir -p .gitea/workflows
+	cp .github/workflows/ci.yml .gitea/workflows/ci.yml
+	@echo "✓ Synced CI workflow to .gitea/workflows/"
+{{/if}}
+
+# ---------- versioning + release ----------
+
+version: ## Print the current project version
+	@cat VERSION
+
+sync-version: ## Propagate the VERSION file into per-stack manifests
+	./scripts/sync_version.py
+
+version-bump: ## Bump the VERSION (LEVEL=patch|minor|major) and propagate
+	@if [ -z "$(LEVEL)" ]; then echo "usage: make version-bump LEVEL=patch|minor|major" && exit 2; fi
+	./scripts/sync_version.py --bump $(LEVEL)
+
+version-set: ## Set the VERSION (NEW=X.Y.Z) and propagate
+	@if [ -z "$(NEW)" ]; then echo "usage: make version-set NEW=1.2.3" && exit 2; fi
+	./scripts/sync_version.py --set $(NEW)
+
+build-prod: {{build_prod_subtargets}} ## Build prod images tagged :VERSION and :latest (no bump)
+{{#if has_compose}}
+	@echo "→ building {{project_slug}}-api:$(VERSION)"
+	docker build -t {{project_slug}}-api:$(VERSION) -t {{project_slug}}-api:latest $(BACKEND)
+	@echo "→ images:"
+	@docker images {{project_slug}}-api --format "  {{.Repository}}:{{.Tag}}  ({{.Size}})"
+{{/if}}
+
+release: ## Bump VERSION (LEVEL=patch|minor|major), build images, tag git
+	@if [ -z "$(LEVEL)" ]; then echo "usage: make release LEVEL=patch|minor|major" && exit 2; fi
+	$(MAKE) version-bump LEVEL=$(LEVEL)
+	$(MAKE) build-prod
+	@new=$$(cat VERSION); \
+	echo "→ tagging git as v$$new"; \
+	git tag {{#if signed_tags}}-s{{/if}}{{#unless signed_tags}}-a{{/unless}} "v$$new" -m "release v$$new" || echo "  (skipped: already tagged?)"
+	@echo ""
+	@echo "Release v$$(cat VERSION) built locally."
+	@echo "Push: git push --tags{{#if has_compose}} && docker push <registry>/{{project_slug}}-api:$$(cat VERSION){{/if}}"
+
+# ---------- project-specific ----------
+# Add your one-shot scripts here. Each should have a `make foo` and
+# `make foo-dry` (or equivalent) where applicable.
+#
+# example-script: ## Run the example script
+# 	./scripts/example.sh
+#
+# example-script-dry: ## Dry-run the example script
+# 	./scripts/example.sh --dry-run

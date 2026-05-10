@@ -1,0 +1,119 @@
+# BACKUP — backing up and restoring {{project_name}}
+
+> Stub at bootstrap. Populate during M{{TODO}} (release prep).
+
+## Targets
+
+- **RTO** (Recovery Time Objective): {{TODO: e.g. "1 hour to a fresh host"}}
+- **RPO** (Recovery Point Objective): {{TODO: e.g. "loss of changes since last successful backup, default daily"}}
+
+If you can't meet these targets with your current backup strategy, change the strategy or change the targets.
+
+---
+
+## What state exists
+
+| Where | What | Authoritative? | Backup priority |
+|---|---|---|---|
+| {{TODO: e.g. `{{project_slug}}-data` Docker volume}} | {{TODO: contents}} | {{TODO: yes/no}} | {{TODO: high/medium/low}} |
+
+The "Authoritative?" column matters: anything authoritative *here* must be backed up. Anything derived (caches, indexes) can be regenerated.
+
+---
+
+## Strategy
+
+{{TODO: short paragraph on the chosen strategy. Common options:
+- "lean on the canonical store (e.g. git remote) for content; snapshot the rest"
+- "periodic tar of named volumes + offsite copy"
+- "database dumps + filesystem snapshots"
+
+Whatever you pick, state it here so future-you knows the design.}}
+
+---
+
+## Backing up
+
+### Quick: one-shot snapshot
+
+```bash
+cd /opt/{{project_slug}}
+mkdir -p ./backups
+DATE=$(date +%Y%m%d-%H%M%S)
+
+docker run --rm \
+  -v {{project_slug}}-data:/data:ro \
+  -v "$(pwd)/backups:/backup" \
+  alpine tar czf "/backup/{{project_slug}}-data-${DATE}.tar.gz" -C /data .
+
+# Local config (project repo)
+tar czf "./backups/{{project_slug}}-config-${DATE}.tar.gz" \
+  .env Caddyfile VERSION docker-compose*.yml
+```
+
+Volume archives are safe to take while {{project_name}} is running. For a fully consistent snapshot, stop the stack first.
+
+### Scheduled: cron + offsite
+
+```cron
+# /etc/cron.d/{{project_slug}}-backup — runs nightly at 03:30
+30 3 * * * root cd /opt/{{project_slug}} && ./scripts/backup.sh >> /var/log/{{project_slug}}-backup.log 2>&1
+```
+
+Skeleton `scripts/backup.sh`:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+cd /opt/{{project_slug}}
+DATE=$(date +%Y%m%d)
+DEST=./backups
+mkdir -p "$DEST"
+
+docker run --rm -v {{project_slug}}-data:/data:ro -v "$PWD/$DEST:/b" \
+  alpine tar czf "/b/{{project_slug}}-data-$DATE.tar.gz" -C /data .
+
+# Keep 14 days locally
+find "$DEST" -name '*.tar.gz' -mtime +14 -delete
+
+# Push offsite (rclone, rsync, restic — pick one)
+# rclone copy "$DEST" b2:my-bucket/{{project_slug}}/
+```
+
+---
+
+## Restoring
+
+### Scenario A: a single item lost
+
+{{TODO: how to recover one page / record / file from a snapshot.}}
+
+### Scenario B: the {{project_slug}}-data volume is lost
+
+{{TODO: full volume restore procedure.}}
+
+### Scenario C: the entire host is gone
+
+{{TODO: bare-metal restore on a fresh server.}}
+
+---
+
+## Verifying restores work
+
+A backup is fictional until you've restored from it.
+
+**Cadence**: quarterly. Take the most recent snapshot, restore to a throwaway host or VM, verify the smoke-test commands below pass. If you haven't restored in 6 months, your backups are unverified.
+
+```bash
+# After any restore:
+curl -sf https://{{project_slug}}.example.com/api/v1/healthz
+{{TODO: project-specific verification commands}}
+```
+
+---
+
+## What this doc doesn't cover
+
+- **Encrypted backups.** Use `restic` or `borgbackup` if you need at-rest encryption.
+- **Point-in-time restore.** Not worth the complexity at this scale.
+- **Cross-version restore.** Restore against the same {{project_name}} version you backed up from. If you must cross versions, restore first, then upgrade — never the other way around.

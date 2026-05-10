@@ -1,0 +1,122 @@
+name: CI
+
+# This file is mirrored to .gitea/workflows/ci.yml when the gitea-mirror
+# flag is enabled. Edit both, or run `make sync-ci` to copy this one over.
+# Only actions that Gitea's act_runner ships with by default are used so
+# the workflow runs unmodified on either host.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+{{#if has_backend}}
+  backend:
+    name: backend (lint + types + tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: {{backend_dir}}
+    steps:
+      - uses: actions/checkout@v4
+
+{{#if has_python}}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Install dependencies
+        run: uv sync --frozen
+{{/if}}
+
+      - name: Pre-flight check
+        working-directory: .
+        run: make check-backend
+{{/if}}
+
+{{#if has_frontend}}
+  frontend:
+    name: frontend (lint + types + tests + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: {{frontend_dir}}
+    steps:
+      - uses: actions/checkout@v4
+
+{{#if has_node}}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: {{frontend_dir}}/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+{{/if}}
+
+      - name: Pre-flight check
+        working-directory: .
+        run: make check-frontend
+
+      - name: Build
+        run: {{frontend_build_command}}
+{{/if}}
+
+{{#if cve_scan_ci}}
+  security:
+    name: security (CVE scan)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+{{#if has_python}}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: pip-audit
+        working-directory: {{backend_dir}}
+        run: uv run --with pip-audit pip-audit --strict
+{{/if}}
+
+{{#if has_node}}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: {{frontend_dir}}/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: {{frontend_dir}}
+        run: pnpm install --frozen-lockfile
+
+      - name: pnpm audit
+        working-directory: {{frontend_dir}}
+        run: pnpm audit --audit-level=high
+{{/if}}
+{{/if}}

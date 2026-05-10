@@ -1,0 +1,35 @@
+# PRIVACY — {{project_name}}
+
+A short, honest statement of what {{project_name}} does and doesn't collect.
+
+---
+
+## What this project collects
+
+{{TODO: e.g. "Nothing. {{project_name}} runs entirely on your hardware."}}
+
+## What this project sends
+
+{{TODO: e.g. "Nothing by default. Outbound network calls happen only when *you* explicitly configure them (e.g. pushing to a configured git remote)."}}
+
+## Where your data lives
+
+{{TODO: e.g. "Inside the `{{project_slug}}-data` Docker volume on the host you deployed to. See `docs/BACKUP.md` for the layout."}}
+
+## Telemetry / analytics
+
+None. {{project_name}} does not phone home, does not collect usage statistics, does not call out to a centralized service.
+
+## Third-party services
+
+{{TODO: list any third-party services {{project_name}} can be configured to talk to (e.g. Let's Encrypt for TLS, a git remote you configure). For each, what data crosses the boundary and what's the user's control over it.}}
+
+- **Let's Encrypt** (if you use the Caddy overlay): Caddy contacts the ACME server to issue/renew TLS certificates for your domain. The data crossing this boundary is your domain name and the email you put in the Caddyfile.
+
+## Logs
+
+{{project_name}} writes logs to stdout/stderr. By default these are captured by Docker's logging driver and rotated per `docker-compose.yml`. They contain operational events; configure log levels with the relevant env vars.
+
+## Changes to this policy
+
+If a future version changes any of the above, the change will be called out in `CHANGELOG.md` under "Security" with a clear "data flow change" note.

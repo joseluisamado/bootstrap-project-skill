@@ -1,0 +1,6 @@
+.DS_Store
+*.swp
+*.swo
+
+# Local install artifact (the skill is rsync'd to ~/.claude/skills, not in this repo)
+.installed
