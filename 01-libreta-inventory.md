@@ -1,6 +1,6 @@
 # Step 1 — Libreta inventory
 
-Source: `the `libreta` repo` at v1.0.0 (commit `5a19cdf`, 2026-05-09).
+Source: the `libreta` repo at v1.0.0 (commit `5a19cdf`, 2026-05-09).
 
 Goal of this document: enumerate every artifact in libreta that could become part of a bootstrap-project skill, capturing for each:
 

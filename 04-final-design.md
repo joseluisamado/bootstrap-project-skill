@@ -554,7 +554,7 @@ bootstrap-project/
     └── why-libreta-shape.md
 ```
 
-The `the repo's `skill/`` directory mirrors this exactly. `install.sh` copies it into `~/.claude/skills/bootstrap-project/`.
+The repo's `skill/` directory mirrors this exactly. `install.sh` copies it into `~/.claude/skills/bootstrap-project/`.
 
 ---
 
