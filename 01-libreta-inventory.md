@@ -273,7 +273,7 @@ The F-NN table forces explicit must/should triage. The non-goals section is the 
 - Specific env vars (`LIBRETA_*`)
 - Specific port numbers (8091/8092/8093)
 - The `LIBRETA_DRAWIO_URL` browser-reachability comment (drawio-specific)
-- The `/abs/host/path` host-mount line (dev-only, accidentally absolute)
+- The absolute host-mount line (dev-only, accidentally absolute)
 
 **Universal bits**:
 - Four-file overlay pattern: base + dev + prod + caddy.
