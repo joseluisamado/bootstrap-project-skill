@@ -1,0 +1,26 @@
+# hosts/{{example_host_name}}/hardware.nix — board-specific bits.
+#
+# PLACEHOLDER. This file evaluates but does NOT describe real hardware.
+# Replace with the output of `nixos-generate-config` on the target,
+# plus an import from inputs.nixos-hardware for the specific board.
+#
+# Example for a Raspberry Pi 4:
+#   imports = [ inputs.nixos-hardware.nixosModules.raspberry-pi-4 ];
+#   fileSystems."/" = { device = "/dev/disk/by-label/NIXOS_SD"; fsType = "ext4"; };
+#   boot.loader.grub.enable = false;
+#   boot.loader.generic-extlinux-compatible.enable = true;
+
+{ lib, ... }:
+
+{
+  # Stub filesystem so the config evaluates; replace with real entry.
+  fileSystems."/" = lib.mkDefault {
+    device = "/dev/disk/by-label/NIXOS_SD";
+    fsType = "ext4";
+  };
+
+  # Stub bootloader for ARM SBCs that boot via extlinux/uboot.
+  # Replace with grub for x86, or remove and import nixos-hardware module.
+  boot.loader.grub.enable = lib.mkDefault false;
+  boot.loader.generic-extlinux-compatible.enable = lib.mkDefault true;
+}

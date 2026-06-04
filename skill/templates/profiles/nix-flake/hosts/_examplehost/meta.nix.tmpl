@@ -1,0 +1,10 @@
+# hosts/{{example_host_name}}/meta.nix — host-level metadata, read by tooling and docs.
+#
+# Schema:
+#   system :: String   nixpkgs system tuple
+#   class  :: String   one of: arm-sbc | x86-mini-pc | riscv-sbc | vm
+
+{
+  system = "{{example_host_system}}";
+  class = "{{example_host_class}}";
+}

@@ -1,0 +1,66 @@
+# Pre-commit hooks for {{project_name}}.
+# Install:  pre-commit install
+# Run all:  pre-commit run --all-files
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+{{#if secret_scanning_precommit}}
+  # Secret scanning — gates the no-unencrypted-secrets invariant.
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: [--baseline, .secrets.baseline]
+        exclude: ^(secrets/.*\.ya?ml|secrets/.*\.json|.*\.lock|flake\.lock)$
+
+{{/if}}
+  # Nix linting (runs if nix is on PATH)
+  - repo: local
+    hooks:
+      - id: nixfmt
+        name: nixfmt
+        entry: nix fmt --
+        language: system
+        files: \.nix$
+        pass_filenames: true
+        require_serial: false
+        stages: [pre-commit]
+
+      - id: statix
+        name: statix (nix anti-patterns)
+        entry: statix check
+        language: system
+        files: \.nix$
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: deadnix
+        name: deadnix (unused nix bindings)
+        entry: deadnix --fail
+        language: system
+        files: \.nix$
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: sops-check
+        name: sops-check (every secrets/ file is encrypted)
+        entry: ./scripts/check-sops.sh
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]

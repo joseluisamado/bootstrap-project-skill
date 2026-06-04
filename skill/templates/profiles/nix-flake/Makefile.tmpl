@@ -1,0 +1,97 @@
+# {{project_name}} — task runner
+#
+# Most targets are thin wrappers over Nix and a few shell scripts.
+# Run `make help` for the menu.
+
+.DEFAULT_GOAL := help
+.PHONY: help \
+        check fmt fmt-check lint eval sops-check \
+        build-{{example_host_name}} image-{{example_host_name}} \
+        deploy-{{example_host_name}} dry-{{example_host_name}} \
+        doctor setup \
+        version version-bump version-set sync-version release
+
+VERSION := $(shell cat VERSION 2>/dev/null)
+
+help: ## Show this help
+	@awk 'BEGIN {FS = ":.*##"; printf "Usage: make <target>\n\nTargets:\n"} \
+	      /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+
+# ---------- pre-flight ----------
+
+check: eval lint fmt-check sops-check ## Run all pre-flight checks
+
+eval: ## nix flake check — all host configs evaluate cleanly
+	nix flake check --no-build
+
+fmt: ## Format Nix files (writes changes)
+	nix fmt
+
+fmt-check: ## Check Nix formatting without writing
+	nix fmt -- --check
+
+lint: ## statix + deadnix
+	statix check .
+	deadnix --fail .
+
+sops-check: ## Verify every file under secrets/ is sops-encrypted
+	./scripts/check-sops.sh
+
+# ---------- build ----------
+
+build-{{example_host_name}}: ## Build the system closure (no flash)
+	nix build .#nixosConfigurations.{{example_host_name}}.config.system.build.toplevel
+
+image-{{example_host_name}}: ## Build an SD/USB image
+	nix build .#nixosConfigurations.{{example_host_name}}.config.system.build.sdImage
+
+# ---------- deploy ----------
+
+dry-{{example_host_name}}: ## Dry-activate against the host (no changes applied)
+	nixos-rebuild dry-activate --flake .#{{example_host_name}} --target-host root@{{example_host_name}}{{#if local_domain}}.{{local_domain}}{{/if}}
+
+deploy-{{example_host_name}}: ## Activate the latest flake against the host
+	nixos-rebuild switch --flake .#{{example_host_name}} --target-host root@{{example_host_name}}{{#if local_domain}}.{{local_domain}}{{/if}}
+
+# ---------- environment ----------
+
+setup: ## First-time dev environment setup
+	./scripts/setup-dev.sh
+
+doctor: ## Verify dev environment is set up correctly
+	@echo "→ checking required tools..."
+	@command -v nix >/dev/null && echo "  ✓ nix ($$(nix --version))" || echo "  ✗ nix (required — install from https://nixos.org/download)"
+	@nix flake --help >/dev/null 2>&1 && echo "  ✓ nix flakes enabled" || echo "  ✗ nix flakes not enabled (add 'experimental-features = nix-command flakes' to nix.conf)"
+	@command -v pre-commit >/dev/null && echo "  ✓ pre-commit" || echo "  ⚠ pre-commit (install via 'pipx install pre-commit' or 'brew install pre-commit')"
+	@command -v sops >/dev/null && echo "  ✓ sops" || echo "  ⚠ sops (install via your package manager)"
+	@command -v age >/dev/null && echo "  ✓ age" || echo "  ⚠ age (install via your package manager)"
+	@echo
+	@echo "→ checking flake..."
+	@test -f flake.nix && echo "  ✓ flake.nix present" || echo "  ⚠ flake.nix missing"
+	@test -f flake.lock && echo "  ✓ flake.lock present" || echo "  ⚠ flake.lock missing (run 'nix flake lock')"
+
+# ---------- versioning + release ----------
+
+version: ## Print the current project version
+	@cat VERSION
+
+sync-version: ## Propagate the VERSION file into per-stack manifests
+	./scripts/sync_version.py
+
+version-bump: ## Bump VERSION (LEVEL=patch|minor|major) and propagate
+	@if [ -z "$(LEVEL)" ]; then echo "usage: make version-bump LEVEL=patch|minor|major" && exit 2; fi
+	./scripts/sync_version.py --bump $(LEVEL)
+
+version-set: ## Set VERSION (NEW=X.Y.Z) and propagate
+	@if [ -z "$(NEW)" ]; then echo "usage: make version-set NEW=1.2.3" && exit 2; fi
+	./scripts/sync_version.py --set $(NEW)
+
+release: ## Bump VERSION and tag git{{#if signed_tags}} (signed){{/if}}
+	@if [ -z "$(LEVEL)" ]; then echo "usage: make release LEVEL=patch|minor|major" && exit 2; fi
+	$(MAKE) version-bump LEVEL=$(LEVEL)
+	@new=$$(cat VERSION); \
+	echo "→ tagging git as v$$new"; \
+	git tag {{#if signed_tags}}-s{{/if}}{{#unless signed_tags}}-a{{/unless}} "v$$new" -m "release v$$new" || echo "  (skipped: already tagged?)"
+	@echo ""
+	@echo "Release v$$(cat VERSION) tagged locally."
+	@echo "Push: git push --tags"

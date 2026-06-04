@@ -55,11 +55,18 @@ Build a spec object with these fields:
 | `principles` | yes (≥3) | List of principles; if fewer than 3 in conversation, ask. |
 | `rules` | yes (≥1) | Inviolable rules derived from principles + sacred invariants. |
 | `milestones` | yes (≥3) | M0..MN; if fewer, ask. |
-| `stack_profile` | yes | One of: python-only / node-only / python+node / go-only / rust-only / polyglot / none-yet. |
+| `stack_profile` | yes | One of: python-only / node-only / python+node / go-only / rust-only / nix-flake / polyglot / none-yet. |
 | `backend_framework` | conditional | If stack has a backend, the framework name. |
 | `frontend_framework` | conditional | If stack has a frontend, the framework name. |
 | `has_user_content_subrepos` | yes (bool) | Does the project produce user-content git repos? (Like libreta's `data/`.) |
-| `deploy_model` | yes | docker-compose / single-binary / library / none-yet. |
+| `deploy_model` | yes | docker-compose / single-binary / artifacts / library / none-yet. |
+| `nixpkgs_channel` | conditional | If `stack_profile = nix-flake`. Default: latest stable release. |
+| `local_domain` | conditional | If `stack_profile = nix-flake` and the project hosts LAN services (e.g. `home.arpa`). |
+| `example_host_name` | conditional | If `stack_profile = nix-flake`. The first host to scaffold. |
+| `example_host_system` | conditional | nixpkgs system tuple for the example host (e.g. `aarch64-linux`). |
+| `example_host_class` | conditional | One of: `arm-sbc` / `x86-mini-pc` / `riscv-sbc` / `vm`. |
+| `has_services` | conditional | If `stack_profile = nix-flake`. Does this project run services on its hosts? |
+| `has_dns_service` | conditional | If `has_services`, does the appliance run its own DNS (changes the example host's network config to point at `127.0.0.1`)? |
 | `user_email` | yes | For SECURITY.md disclosure. Get from session env or ask. |
 | `competitors` | optional | If the user mentioned alternatives, the comparison-table candidates. |
 
@@ -100,6 +107,14 @@ About to bootstrap "{{project_name}}" with:
   Deploy: {{deploy_model}}
   License: <not yet asked>
   User-content sub-repos: {{has_user_content_subrepos}}
+{{#if stack_profile_is_nix_flake}}
+  Nix profile:
+    nixpkgs channel: {{nixpkgs_channel}}
+    Example host: {{example_host_name}} ({{example_host_system}}, {{example_host_class}})
+    Services surface: {{has_services}}
+    DNS service on appliance: {{has_dns_service}}
+    Local domain: {{local_domain}}
+{{/if}}
 
   Principles ({{N}}):
     P1 — ...
@@ -170,6 +185,36 @@ Use `AskUserQuestion` (multiSelect=true) with these flags. Defaults:
 
 Some flags are conditional: `a11y-checks` and `i18n-scaffold` are only
 shown if the stack has a frontend.
+
+### Nix-flake profile asks
+
+When `stack_profile = nix-flake`, ask these in addition to the standard
+license + add-ons set. Defaults marked **(Recommended)**:
+
+1. **nixpkgs channel** — `nixos-XX.YY` (latest stable, **Recommended**) vs.
+   `nixos-unstable`. The skill keeps the current stable in
+   `templates/profiles/nix-flake/CHANNEL` (one line, e.g. `nixos-25.05`).
+   Read it; bump it manually when a new release lands.
+2. **Example host name** — short slug for the first declared host
+   (e.g. `nanopi`, `nuc`, `vm`). The scaffold creates `hosts/<name>/`
+   and references it across Makefile targets.
+3. **Example host system** — nixpkgs system tuple (`aarch64-linux` Recommended
+   for SBCs; `x86_64-linux` for mini-PCs; `riscv64-linux` for RISC-V).
+4. **Example host class** — `arm-sbc` / `x86-mini-pc` / `riscv-sbc` / `vm`.
+   Used only as documentation metadata in `hosts/<name>/meta.nix`.
+5. **`has_services`** — does this project run services on its hosts (Pi-hole,
+   Caddy, etc.)? **Recommended** for appliance-shaped projects; skip for
+   pure host-config (laptop dotfiles-as-NixOS) projects.
+6. **`has_dns_service`** — conditional on `has_services`. Does the appliance
+   run its own DNS resolver (Pi-hole, dnsmasq, Unbound)? If yes, the
+   example host's `network.nix` sets `dns = [ "127.0.0.1" ]` so the host
+   uses its own resolver; otherwise public resolvers are configured.
+7. **Local domain** — conditional on `has_services`. The DNS domain for
+   LAN services (`home.arpa` Recommended per RFC 8375; or `lan`, `local`,
+   or a real subdomain you own).
+
+The default `deploy_model` for `stack_profile = nix-flake` is `artifacts`
+unless the user opts otherwise.
 
 ---
 
@@ -247,11 +292,27 @@ scripts/setup-dev.sh
 |---|---|
 | `deploy_model = docker-compose` | `docker-compose.yml`, `docker-compose.dev.yml`, `docker-compose.prod.yml`, `.env.example` |
 | `deploy_model = docker-compose` AND user enables Caddy | `docker-compose.caddy.yml`, `Caddyfile.example` |
+| `stack_profile = nix-flake` | `flake.nix`, `hosts/_common/base.nix`, `hosts/<example_host_name>/{default,hardware,network,meta}.nix`, `.sops.yaml`, `secrets/README.md`, `.gitignore`, profile's `Makefile`, profile's `.pre-commit-config.yaml`, profile's `.github/workflows/ci.yml`, `scripts/check-sops.sh` |
+| `stack_profile = nix-flake` AND `has_services = true` | `services/_template/{README.md,meta.nix,compose.yml}` |
+| `deploy_model = artifacts` | Skips `docker-compose*.yml`; `docs/DEPLOY.md` rendered from the artifact variant (flash + bootstrap guide instead of compose-up). |
 | `gitea-mirror` | `.gitea/workflows/ci.yml` |
 | `runbook` | `docs/RUNBOOK.md` |
 | `rfc-process` | `docs/rfcs/0000-template.md` |
 | `external-contributions` | `CODE_OF_CONDUCT.md`, `.github/ISSUE_TEMPLATE/bug_report.md`, `.github/ISSUE_TEMPLATE/feature_request.md`, `.github/PULL_REQUEST_TEMPLATE.md` |
 | `dependency-bot` | `.github/dependabot.yml` |
+
+### Profile templates
+
+Templates that vary by `stack_profile` live under `templates/profiles/<profile>/`.
+Files in there can shadow always-present templates with the same name (e.g. the
+`Makefile.tmpl` under `profiles/nix-flake/` replaces the default `Makefile.tmpl`
+when `stack_profile = nix-flake`). The flat `templates/` files remain the default
+for stack profiles without a dedicated profile directory.
+
+Current profiles:
+
+- `nix-flake` — see [`patterns/appliance-nixos.md`](./patterns/appliance-nixos.md)
+  for the design rationale.
 
 Caddy isn't a separate flag in §4 — ask "include Caddy TLS overlay?" only
 if `deploy_model = docker-compose`.
@@ -373,6 +434,18 @@ the user's call.
   a stub for the technical sections.
 - **Deploy model = `library`.** Skill writes `docs/PUBLISH.md` instead of
   `docs/DEPLOY.md`, skips compose files, skips BACKUP.md.
+- **Deploy model = `artifacts`.** New in v0.2.0. Skill renders the
+  artifacts variant of `docs/DEPLOY.md` (flash-and-bootstrap guide,
+  not a compose-up guide). Skips `docker-compose*.yml`. Compatible with
+  any `stack_profile`; the natural pairing is `nix-flake`, but a Go
+  project shipping a single binary + an installer script also fits.
+- **Stack profile = `nix-flake`.** Skill loads templates from
+  `templates/profiles/nix-flake/` shadowing the flat defaults. Asks
+  the nix-flake-specific questions per §4. Defaults `deploy_model` to
+  `artifacts`. Skips `pyproject.toml` / `package.json` propagation in
+  `scripts/sync_version.py` (TARGETS stays empty). See
+  [`patterns/appliance-nixos.md`](./patterns/appliance-nixos.md) for
+  the design rationale captured during v0.2.0 development.
 
 ---
 

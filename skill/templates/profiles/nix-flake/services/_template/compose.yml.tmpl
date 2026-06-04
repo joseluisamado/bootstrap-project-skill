@@ -1,0 +1,21 @@
+# services/_template/compose.yml — copy and edit for a new service.
+#
+# IMPORTANT: pin images by digest (image@sha256:...), not by tag.
+# CI rejects tag-only references. See R5 in CLAUDE.md.
+
+services:
+  example:
+    # image: nginx@sha256:0000000000000000000000000000000000000000000000000000000000000000
+    image: hello-world@sha256:0000000000000000000000000000000000000000000000000000000000000000
+    restart: unless-stopped
+    # ports:
+    #   - "8080:80"
+    # volumes:
+    #   - example-data:/var/lib/example
+    # environment:
+    #   - EXAMPLE_KEY=value
+
+# volumes:
+#   example-data:
+#     labels:
+#       {{project_slug}}: "true"   # picked up by the backup script

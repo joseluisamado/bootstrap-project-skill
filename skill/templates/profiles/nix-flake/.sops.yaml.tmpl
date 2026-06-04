@@ -1,0 +1,32 @@
+# .sops.yaml — encryption rules for secrets/ files.
+#
+# Each `creation_rule` matches a path-glob and lists the age recipients
+# allowed to decrypt files matching it. Operator keys + per-host keys.
+#
+# To encrypt a new file:    sops <file>
+# To rotate recipients:     sops updatekeys <file>
+#
+# Replace the placeholder recipients below with real public keys before
+# encrypting anything. Generate one with:  age-keygen -o ~/.config/{{project_slug}}/<name>.age
+
+keys:
+  # Operator keys — add yours here.
+  - &operator_laptop age1placeholder0000000000000000000000000000000000000000000000
+
+  # Per-host keys — each host has its own age key baked into the image.
+  - &host_{{example_host_name}} age1placeholder1111111111111111111111111111111111111111111111
+
+creation_rules:
+  # Global secrets (every host needs to decrypt these).
+  - path_regex: ^secrets/default\.(yaml|json)$
+    key_groups:
+      - age:
+          - *operator_laptop
+          - *host_{{example_host_name}}
+
+  # Per-host secrets — only the matching host + operators.
+  - path_regex: ^secrets/{{example_host_name}}\.(yaml|json)$
+    key_groups:
+      - age:
+          - *operator_laptop
+          - *host_{{example_host_name}}

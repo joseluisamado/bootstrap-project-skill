@@ -1,0 +1,138 @@
+{
+  description = "{{project_name}} — {{tagline_short}}";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/{{nixpkgs_channel}}";
+
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    flake-utils.url = "github:numtide/flake-utils";
+
+{{#if has_services}}
+    # compose2nix bridges docker-compose.yml files into NixOS oci-containers
+    # modules. The service-loader uses it; see modules/service-loader.nix.
+    compose2nix = {
+      url = "github:aksiksi/compose2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+{{/if}}
+  };
+
+  outputs =
+    { self
+    , nixpkgs
+    , nixos-hardware
+    , sops-nix
+{{#if has_services}}
+    , compose2nix
+{{/if}}
+    , flake-utils
+    , ...
+    }@inputs:
+    let
+      # Hosts declared in ./hosts/. Add new hosts here; each must have a
+      # `default.nix`, a `meta.nix` (with `system` and `class`), and a
+      # `hardware.nix` (real or placeholder).
+      hosts = {
+        {{example_host_name}} = {
+          system = "{{example_host_system}}";
+          class = "{{example_host_class}}";
+        };
+        # Examples for future hosts:
+        # minipc = { system = "x86_64-linux"; class = "x86-mini-pc"; };
+        # mars   = { system = "riscv64-linux"; class = "riscv-sbc"; };
+      };
+
+      # Systems we offer dev shells / packages for.
+      devSystems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
+
+      mkHost = name: hostMeta:
+        nixpkgs.lib.nixosSystem {
+          system = hostMeta.system;
+          specialArgs = {
+            inherit inputs self;
+            hostName = name;
+            hostMeta = hostMeta;
+          };
+          modules = [
+            sops-nix.nixosModules.sops
+            ./hosts/_common/base.nix
+            (./hosts + "/${name}")
+          ];
+        };
+    in
+    {
+      nixosConfigurations =
+        nixpkgs.lib.mapAttrs mkHost hosts;
+    }
+    // flake-utils.lib.eachSystem devSystems (system:
+      let
+        pkgs = import nixpkgs { inherit system; };
+      in
+      {
+        # `nix fmt` — formats every .nix file with the in-tree RFC formatter.
+        formatter = pkgs.nixfmt-rfc-style;
+
+        # `nix develop` — the dev shell used by `make check`, pre-commit hooks,
+        # and humans editing the flake.
+        devShells.default = pkgs.mkShell {
+          name = "{{project_slug}}-dev";
+          packages = with pkgs; [
+            # Nix tooling
+            nixfmt-rfc-style
+            statix
+            deadnix
+            nix-tree
+            nix-output-monitor
+
+            # Secrets
+            sops
+            age
+            ssh-to-age
+
+            # Git / CI hygiene
+            pre-commit
+            gitleaks
+
+            # General
+            jq
+            yq-go
+            just
+          ];
+
+          shellHook = ''
+            echo ""
+            echo "{{project_slug}} dev shell — $(nix --version)"
+            echo ""
+            echo "Common targets:"
+            echo "  make check         — flake eval + lint + format + sops"
+            echo "  make image-{{example_host_name}}  — build SD image for {{example_host_name}}"
+            echo "  sops secrets/...   — edit an encrypted secrets file"
+            echo ""
+          '';
+        };
+
+        # `nix flake check` evaluates this — fast, doesn't build anything heavy.
+        checks = {
+          # Eval-only smoke: every host config evaluates without errors.
+          eval-hosts =
+            pkgs.runCommand "eval-hosts" { } ''
+              echo "Hosts evaluated: ${
+                builtins.toString
+                  (builtins.attrNames self.nixosConfigurations)
+              }"
+              touch $out
+            '';
+        };
+      });
+}

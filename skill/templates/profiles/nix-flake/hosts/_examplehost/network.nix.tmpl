@@ -1,0 +1,28 @@
+# hosts/{{example_host_name}}/network.nix — static network identity.
+#
+# Pin the host's MAC to the IP below via static DHCP lease on your router.
+# Change BOTH places if you change the IP.
+
+{ lib, ... }:
+
+{
+  networking.useDHCP = lib.mkDefault false;
+
+  systemd.network = {
+    enable = true;
+    networks."10-lan" = {
+      matchConfig.Name = "end0"; # Pi 5 default; "eth0" on older boards; "enp*" on x86.
+      address = [ "192.168.1.2/24" ]; # TODO: set to the appliance IP
+      routes = [{ Gateway = "192.168.1.1"; }]; # TODO: set to the gateway
+{{#if has_dns_service}}
+      dns = [ "127.0.0.1" ]; # host resolves via its own DNS service
+{{/if}}
+{{#unless has_dns_service}}
+      dns = [ "1.1.1.1" "9.9.9.9" ];
+{{/unless}}
+{{#if local_domain}}
+      domains = [ "{{local_domain}}" ];
+{{/if}}
+    };
+  };
+}

@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  flake:
+    name: flake (eval + lint + format + sops)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            experimental-features = nix-command flakes
+
+      - name: Magic Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Flake check (evaluates every host)
+        run: nix flake check --no-build --print-build-logs
+
+      - name: Format check
+        run: nix fmt -- --check || (echo "::error::Run 'nix fmt' locally" && exit 1)
+
+      - name: statix
+        run: nix run nixpkgs#statix -- check .
+
+      - name: deadnix
+        run: nix run nixpkgs#deadnix -- --fail .
+
+      - name: sops-check (every secrets/ file encrypted)
+        run: ./scripts/check-sops.sh
+
+{{#if secret_scanning_precommit}}
+  secrets-scan:
+    name: secrets scan (detect-secrets)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install detect-secrets
+        run: pip install detect-secrets
+
+      - name: Scan
+        run: |
+          if [ -f .secrets.baseline ]; then
+            detect-secrets scan --baseline .secrets.baseline
+          else
+            detect-secrets scan > /tmp/baseline.tmp
+            echo "::warning::No .secrets.baseline; run 'detect-secrets scan > .secrets.baseline' and commit"
+          fi
+{{/if}}
+
+{{#if cve_scan_ci}}
+  cve-scan:
+    name: CVE scan (container image audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget
+          wget -qO- https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install -y trivy
+
+      - name: Scan all referenced container images
+        run: |
+          set -e
+          if [ -d services ]; then
+            grep -rhE '^\s*image:\s*' services/ 2>/dev/null | awk '{print $2}' | sort -u | while read img; do
+              echo "::group::trivy image $img"
+              trivy image --severity HIGH,CRITICAL --exit-code 0 "$img" || true
+              echo "::endgroup::"
+            done
+          else
+            echo "No services/ directory yet; skipping image scan."
+          fi
+{{/if}}

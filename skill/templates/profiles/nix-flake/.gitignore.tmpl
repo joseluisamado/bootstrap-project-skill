@@ -1,0 +1,31 @@
+# Nix build outputs
+result
+result-*
+.direnv/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Secrets — anything decrypted at runtime, never commit
+secrets/*.dec.*
+*.age
+age.key
+!secrets/*.yaml
+!secrets/*.json
+!secrets/README.md
+
+# Local overrides
+local.nix
+*.local
+
+# Bootstrap / backup tarballs
+backups/
+*.tar.gz
+
+# Logs
+*.log

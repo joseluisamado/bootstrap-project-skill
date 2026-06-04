@@ -1,0 +1,12 @@
+# services/_template/meta.nix — schema reference for service metadata.
+
+{
+  # Toggle the service on/off without removing its directory.
+  enabled = false;
+
+  # Hostnames (matching dirs under ./hosts/) that should run this service.
+  hosts = [ ];
+
+  # One-line human-readable description.
+  description = "Template service — copy this directory to make a new service.";
+}

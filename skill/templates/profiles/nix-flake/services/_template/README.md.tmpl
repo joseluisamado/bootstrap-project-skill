@@ -1,0 +1,30 @@
+# services/_template
+
+Copy this directory to `services/<name>/` to declare a new service.
+
+## What goes in here
+
+- `compose.yml` — standard docker-compose v3+ fragment. Image **must** be
+  pinned by digest (e.g. `nginx@sha256:...`), not by tag. CI rejects tags.
+- `meta.nix` — `{ enabled :: Bool; hosts :: [ String ]; description :: String; }`.
+  Extra keys allowed but document them here.
+- `config/` (optional) — files mounted into the container as bind-mounts.
+- `README.md` — what the service does, why it's here, how to verify it.
+
+## Adding a service
+
+1. `cp -r services/_template services/<name>`.
+2. Edit `compose.yml`.
+3. Edit `meta.nix` — set `enabled = true` and list the hosts that should run it.
+4. `make check` then `nixos-rebuild dry-activate --flake .#<host>` against an affected host.
+5. Push when green.
+
+## Verifying
+
+After deploy, the service-loader (`modules/service-loader.nix`) translates
+the compose into a NixOS oci-containers unit. Verify with:
+
+```bash
+ssh root@<host> 'systemctl status docker-<name>.service'
+ssh root@<host> 'docker ps --filter "name=<name>"'
+```

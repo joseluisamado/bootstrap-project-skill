@@ -1,0 +1,20 @@
+# hosts/{{example_host_name}}/default.nix — entry point for {{example_host_name}}.
+#
+# Placeholder at bootstrap: the host evaluates cleanly so `nix flake check`
+# passes, but does not yet build a real image. Flesh out hardware.nix and
+# import any required _common/ modules to make this a real host.
+
+{ config, lib, pkgs, inputs, ... }:
+
+{
+  imports = [
+    ./hardware.nix
+    ./network.nix
+  ];
+
+  # Empty at bootstrap. Subsequent work adds:
+  #   - ../_common/docker.nix         (if services use Docker)
+  #   - ../_common/sops.nix           (when secrets are wired)
+  #   - ../_common/self-update.nix    (when self-update is enabled)
+  #   - ../../modules/service-loader.nix  (when the service-loader is implemented)
+}

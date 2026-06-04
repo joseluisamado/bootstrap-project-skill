@@ -1,0 +1,68 @@
+# hosts/_common/base.nix — settings shared by every managed host.
+#
+# Anything host-specific belongs in hosts/<name>/, not here.
+# See CLAUDE.md: don't edit _common/ to fix one host's problem.
+
+{ config, lib, pkgs, hostName, ... }:
+
+{
+  # Identity
+  networking.hostName = hostName;
+{{#if local_domain}}
+  networking.domain = "{{local_domain}}";
+{{/if}}
+
+  # Time / locale defaults; override per-host if needed.
+  time.timeZone = lib.mkDefault "UTC";
+  i18n.defaultLocale = lib.mkDefault "en_US.UTF-8";
+
+  # SSH — key-only, no passwords. Operator keys are seeded per host
+  # (see hosts/<name>/default.nix).
+  services.openssh = {
+    enable = true;
+    settings = {
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+      PermitRootLogin = lib.mkDefault "prohibit-password";
+    };
+  };
+
+  # Firewall closed by default; per-service modules open what they need.
+  networking.firewall = {
+    enable = true;
+    allowPing = true;
+  };
+
+  # Minimum useful base packages on every host.
+  environment.systemPackages = with pkgs; [
+    git
+    vim
+    curl
+    htop
+    tmux
+    dnsutils
+  ];
+
+  # Journal: keep enough to debug a week-old incident, don't fill disk.
+  services.journald.extraConfig = ''
+    SystemMaxUse=500M
+    MaxRetentionSec=2week
+  '';
+
+  # Nix daemon: flakes enabled, garbage-collect old generations weekly.
+  nix = {
+    settings = {
+      experimental-features = [ "nix-command" "flakes" ];
+      auto-optimise-store = true;
+      trusted-users = [ "root" "@wheel" ];
+    };
+    gc = {
+      automatic = true;
+      dates = "weekly";
+      options = "--delete-older-than 14d";
+    };
+  };
+
+  # NixOS state version. Do not bump casually — read the release notes first.
+  system.stateVersion = lib.mkDefault "{{nixos_state_version}}";
+}
