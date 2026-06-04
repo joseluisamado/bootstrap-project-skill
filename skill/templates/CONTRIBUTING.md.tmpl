@@ -24,7 +24,7 @@ See `CLAUDE.md` §3.4 (and §4.4 if applicable) for the pre-merge checklist.
 
 - Open a PR against `main`. Branches: `feat/...`, `fix/...`, `refactor/...`, `docs/...`.
 - Conventional Commits in the message body. See `CLAUDE.md` §6.2 for examples.
-- Each PR should leave the `make check` green and update `CHANGELOG.md` under `[Unreleased]` if user-visible.
+- Each PR should leave `make check` green. You don't hand-edit `CHANGELOG.md` — it's generated from Conventional Commit subjects at release time (`make release`), so a clear `feat:` / `fix:` subject *is* your changelog entry.
 - For non-trivial design changes, mention them in the PR description and add a `D-NN` entry to `docs/ARCHITECTURE.md` "Key decisions".
 
 ## Reporting bugs

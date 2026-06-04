@@ -7,6 +7,48 @@ updating. This document is the lookup table.
 
 ---
 
+## v0.2.0 → v0.3.0
+
+### Summary
+
+v0.3.0 introduces commit-driven changelog generation and a one-command
+`make release`. **No file-level changes are required** for projects already
+bootstrapped on v0.2.0 — the new flow is opt-in.
+
+### Optional: adopt the new release flow in an existing project
+
+The new flow generates `CHANGELOG.md` from Conventional Commit subjects instead
+of hand-maintaining an `[Unreleased]` section, and makes `make release` a single
+orchestrated cut (check → prompt level → write VERSION+CHANGELOG → build →
+revert-on-fail → commit → tag → deploy).
+
+To adopt it:
+
+1. Copy the new `scripts/changelog.py` from the skill templates into the
+   project's `scripts/` (verbatim, `chmod +x`). It imports the project's
+   existing `scripts/sync_version.py`, so manifest propagation keeps working
+   via that file's `TARGETS`.
+2. Replace the `versioning + release` block in the project's `Makefile` with
+   the v0.3.0 template's: `changelog`, `changelog-backfill`, `release`,
+   `release-current`, and the shared `_tag` / `_tag-and-deploy` target. Update
+   `.PHONY` accordingly.
+3. One-time, reseed the changelog from your existing tags:
+   `make changelog-backfill` (or `./scripts/changelog.py --backfill`). Review
+   and hand-polish foundational entries.
+4. Update `CONTRIBUTING.md` / `CLAUDE.md` to drop the "edit CHANGELOG under
+   `[Unreleased]`" instruction — commit subjects are now the entries.
+
+This is purely mechanical and has no effect on the running project; it only
+changes how releases are cut going forward.
+
+### What did NOT change
+
+- Stack profiles, deploy models, the docs quintet, and the add-on flag set —
+  all unchanged.
+- `scripts/sync_version.py` — unchanged; `changelog.py` builds on it.
+
+---
+
 ## v0.1.0 → v0.2.0
 
 ### Summary

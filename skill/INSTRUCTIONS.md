@@ -251,8 +251,8 @@ For each templated file:
 3. Write to the target path inside the project root.
 
 For files copied verbatim (e.g. `scripts/sync_version.py`,
-`templates/licenses/<name>.txt` → `LICENSE`, `.editorconfig`), skip
-templating and copy bytes.
+`scripts/changelog.py`, `templates/licenses/<name>.txt` → `LICENSE`,
+`.editorconfig`), skip templating and copy bytes.
 
 ### Always-present files
 
@@ -282,6 +282,7 @@ docs/INCIDENTS.md       # empty log
 docs/PRIVACY.md         # short doc
 scripts/README.md
 scripts/sync_version.py # copied verbatim
+scripts/changelog.py    # copied verbatim — commit-driven release cut
 scripts/setup-dev.sh
 .github/workflows/ci.yml
 ```
@@ -453,8 +454,11 @@ the user's call.
 
 When the skill itself is updated:
 
-1. Increment `bootstrap_skill_version` in `.bootstrap-meta.yaml.tmpl`.
-2. Update `CHANGELOG.md` (in the skill repo).
+1. Bump the skill's top-level `VERSION` file. `{{skill_version}}` (used in
+   `.bootstrap-meta.yaml.tmpl` and `BOOTSTRAP-MANIFEST.md.tmpl`) is sourced
+   from it, so new scaffolds stamp the new version automatically.
+2. Update `CHANGELOG.md` (in the skill repo), and copy it into `skill/` if you
+   keep the in-skill copy in sync.
 3. If the new version changes any always-present file's shape, add a
    migration note in `MIGRATIONS.md` so projects on older skill versions
    know what to do.

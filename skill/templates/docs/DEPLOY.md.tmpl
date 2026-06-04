@@ -152,6 +152,40 @@ docker compose logs -f caddy
 
 ---
 
+## 8b. Cutting a release (maintainers)
+
+The `VERSION` file is the single source of truth. One command — `make release` —
+drives the whole cut, with the version bump and `CHANGELOG.md` update derived
+from [Conventional Commit](https://www.conventionalcommits.org) subjects.
+
+```bash
+# 1. Commit your code changes (Conventional Commits — feat:, fix:, refactor!:, …).
+
+# 2. Cut the release.
+make release
+# It runs, in order:
+#   - abort if there are no commits since the last tag
+#   - prompt for the bump level (patch / minor / major) — or pass LEVEL=minor
+#   - write VERSION + CHANGELOG (+ stack manifests)
+#   - build; if the build FAILS, revert VERSION + CHANGELOG
+#   - commit "chore(release): vX.Y.Z", tag vX.Y.Z{{#if has_compose}}, push images{{/if}}
+
+# 3. Publish.
+git push --follow-tags
+```
+
+Preview without writing: `./scripts/changelog.py --level minor --dry-run`.
+Re-ship the current `VERSION` as-is (no bump/changelog/commit):
+`make release-current`. Cut the version + changelog *without* building/deploying
+(to review first): `make changelog` (prompts, or `LEVEL=`).
+
+`CHANGELOG.md` follows [Keep a Changelog](https://keepachangelog.com/). Only
+user-facing commit types appear (`feat`→Added, `fix`→Fixed, `perf`/`refactor`→
+Changed, `docs`→Documentation, breaking `!`→BREAKING CHANGES); `chore`, `test`,
+`ci`, `build`, `style` are dropped. To reseed from tags: `make changelog-backfill`.
+
+---
+
 ## 9. Upgrades
 
 ```bash

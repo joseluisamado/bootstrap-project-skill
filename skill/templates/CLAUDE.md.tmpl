@@ -76,7 +76,7 @@ CI runs all of these. If any of them are red, work isn't done.
 Before pressing "merge" (or `git push` to main, for solo work):
 
 - [ ] All §3.3 checks green.
-- [ ] CHANGELOG entry added under `[Unreleased]` if user-visible.
+- [ ] Commit subject is a clear Conventional Commit (`feat:`/`fix:`/…) — it becomes the CHANGELOG entry at release time; no hand-editing `CHANGELOG.md`.
 - [ ] Docs updated if behavior changed (`docs/ARCHITECTURE.md` for design changes; `docs/DEPLOY.md` for ops changes).
 - [ ] PROGRESS entry added with a pre-flight sign-off line.
 - [ ] No new `{{TODO}}` markers introduced without an issue / backlog entry.
@@ -189,7 +189,7 @@ Several docs in this repo are living documents. Keep them current:
 - **`docs/ARCHITECTURE.md`** — update when an architectural choice changes. The "Open questions" section shrinks as decisions land — move resolved items into the "Resolved" sub-section with a date stamp.
 - **`docs/PROJECT.md`** — rarely changes. Treat the principles section as constitutional; propose changes, don't make them silently.
 - **`README.md`** — update when the user-facing quickstart changes.
-- **`CHANGELOG.md`** — update as part of every user-visible change. The `[Unreleased]` section accumulates until a release; `make release` (or manual edit) moves it under a versioned heading.
+- **`CHANGELOG.md`** — generated, not hand-edited. `make release` derives each version's section from the Conventional Commit subjects since the last tag (`scripts/changelog.py`). Write a clear commit subject and the entry takes care of itself; you may polish a generated section after a cut.
 - **`CLAUDE.md`** (this file) — update when conventions change or when you find yourself repeatedly correcting the same thing.
 
 ---

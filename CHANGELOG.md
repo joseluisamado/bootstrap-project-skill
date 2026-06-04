@@ -9,6 +9,38 @@ The version recorded in a project's `.bootstrap-meta.yaml` matches the
 version below at the time of scaffolding. See [`MIGRATIONS.md`](./MIGRATIONS.md)
 for upgrade notes when the skill version bumps.
 
+## [0.3.0] — 2026-06-04
+
+### Added
+
+- **Commit-driven CHANGELOG + one-command release.** New verbatim template
+  `scripts/changelog.py` generates `CHANGELOG.md` from Conventional Commit
+  subjects (feat→Added, fix→Fixed, perf/refactor→Changed, docs→Documentation,
+  breaking `!`→BREAKING CHANGES; chore/test/ci/build/style dropped), bumps
+  `VERSION`, and propagates to stack manifests via `sync_version`'s TARGETS.
+  Modes: `--level`/`--set` (prompts if neither), `--check`, `--revert`,
+  `--backfill`, `--dry-run`. Generalized from the Libreta reference project.
+
+### Changed
+
+- **`Makefile.tmpl` release flow reworked.** `make release` is now a single
+  orchestrator: check for unreleased commits → prompt for LEVEL (or `LEVEL=`)
+  → write VERSION+CHANGELOG → build → **revert the cut if the build fails** →
+  commit `chore(release): vX.Y.Z` → tag (→ push images if `has_compose`). New
+  `make release-current` re-ships the current VERSION as-is; new `make
+  changelog` / `changelog-backfill`. The version bump moved out of the release
+  target into `scripts/changelog.py`.
+- **`CHANGELOG.md.tmpl`** reseeded to the generator's header format with a
+  single dated version section (was the old `[Unreleased]`-accumulation shape).
+- **Docs templates** updated to the generated-changelog reality: `CLAUDE.md`
+  (pre-flight + living-docs note), `CONTRIBUTING.md` ("your commit subject is
+  the changelog entry"), and `docs/DEPLOY.md` (new §8b "Cutting a release").
+
+### Migration
+
+See [`MIGRATIONS.md`](./MIGRATIONS.md) for v0.2.0 → v0.3.0 notes. Existing
+projects keep working unchanged; the new release flow is opt-in.
+
 ## [0.2.0] — 2026-05-16
 
 ### Added

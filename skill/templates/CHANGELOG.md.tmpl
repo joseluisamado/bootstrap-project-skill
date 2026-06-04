@@ -1,35 +1,18 @@
 # Changelog
 
-All notable changes to {{project_name}} are recorded here.
+All notable changes to {{project_name}} are documented here.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+Entries are generated from [Conventional Commits](https://www.conventionalcommits.org)
+by `scripts/changelog.py` at release time — you don't hand-edit them. Write a
+clear `feat:` / `fix:` commit subject and it becomes the entry. Cut a release
+with `make release` (it prompts for the bump level, writes the section below,
+then commits and tags).
+
+## [{{version}}] - {{date_today}}
 
 ### Added
-- Initial scaffold via `bootstrap-project` skill.
 
-### Changed
-- _(none)_
-
-### Fixed
-- _(none)_
-
-### Removed
-- _(none)_
-
-### Deprecated
-- _(none)_
-
-### Security
-- _(none)_
-
----
-
-<!--
-When releasing:
-1. Move items from [Unreleased] under a new `## [X.Y.Z] — YYYY-MM-DD` heading.
-2. Update VERSION.
-3. `make release LEVEL={major,minor,patch}`.
-4. Push the tag.
--->
+- Initial scaffold via the `bootstrap-project` skill.

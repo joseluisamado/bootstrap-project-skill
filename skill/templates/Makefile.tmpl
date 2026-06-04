@@ -19,7 +19,8 @@
         up up-dev rebuild rebuild-dev down logs ps \
         clean {{clean_subtargets}} \
         version version-bump version-set sync-version \
-        build-prod release \
+        changelog changelog-backfill \
+        build-prod release release-current _tag{{#if has_compose}}-and-deploy{{/if}} \
         doctor {{#if gitea_mirror}}sync-ci{{/if}}
 
 {{#if has_backend}}
@@ -247,16 +248,56 @@ build-prod: {{build_prod_subtargets}} ## Build prod images tagged :VERSION and :
 	@docker images {{project_slug}}-api --format "  {{.Repository}}:{{.Tag}}  ({{.Size}})"
 {{/if}}
 
-release: ## Bump VERSION (LEVEL=patch|minor|major), build images, tag git
-	@if [ -z "$(LEVEL)" ]; then echo "usage: make release LEVEL=patch|minor|major" && exit 2; fi
-	$(MAKE) version-bump LEVEL=$(LEVEL)
+changelog: ## Bump VERSION + write CHANGELOG from commits, without releasing (prompts, or LEVEL=)
+	./scripts/changelog.py $(if $(LEVEL),--level $(LEVEL),)
+
+changelog-backfill: ## Reseed CHANGELOG.md from every git tag (one-off)
+	./scripts/changelog.py --backfill
+
+# One-command release. Run after committing your code changes; it drives the
+# whole cut:
+#   1. abort if there are no commits since the last tag
+#   2. prompt for the bump LEVEL (or pass LEVEL=patch|minor|major), write
+#      VERSION + CHANGELOG (version bump lives in scripts/changelog.py)
+#   3. build — if the build fails, revert VERSION/CHANGELOG
+#   4. commit VERSION+CHANGELOG, tag vX.Y.Z{{#if has_compose}}, deploy{{/if}}
+# Then publish manually:  git push --follow-tags
+release: ## Cut a release: check commits → prompt LEVEL → build → commit+tag{{#if has_compose}}+deploy{{/if}}
+	@echo "→ checking for unreleased commits"; \
+	if ! ./scripts/changelog.py --check; then exit 0; fi; \
+	echo "→ cutting version"; \
+	./scripts/changelog.py $(if $(LEVEL),--level $(LEVEL),) || { echo "release aborted"; exit 1; }; \
+	new=$$(cat VERSION); \
+	echo "→ building for v$$new"; \
+	if ! $(MAKE) build-prod; then \
+	  echo "✗ build failed — reverting VERSION + CHANGELOG"; \
+	  ./scripts/changelog.py --revert; \
+	  exit 1; \
+	fi; \
+	echo "→ committing VERSION + CHANGELOG for v$$new"; \
+	git add VERSION CHANGELOG.md; \
+	git add -u; \
+	git commit -m "chore(release): v$$new" >/dev/null; \
+	$(MAKE) _tag{{#if has_compose}}-and-deploy{{/if}}
+
+# Blindly (re)release whatever VERSION currently says: build, tag{{#if has_compose}}, deploy{{/if}}. No
+# commit check, no bump, no changelog, no commit.
+release-current: ## Re-release the CURRENT VERSION as-is: build, tag{{#if has_compose}}, deploy{{/if}} (no bump/commit)
 	$(MAKE) build-prod
+	$(MAKE) _tag{{#if has_compose}}-and-deploy{{/if}}
+
+# Shared tail: tag the current VERSION{{#if has_compose}} and ship the images{{/if}}.
+_tag{{#if has_compose}}-and-deploy{{/if}}:
 	@new=$$(cat VERSION); \
 	echo "→ tagging git as v$$new"; \
 	git tag {{#if signed_tags}}-s{{/if}}{{#unless signed_tags}}-a{{/unless}} "v$$new" -m "release v$$new" || echo "  (skipped: already tagged?)"
+{{#if has_compose}}
+	@new=$$(cat VERSION); \
+	echo "→ pushing image {{project_slug}}-api:$$new"; \
+	docker push <registry>/{{project_slug}}-api:$$new || echo "  (configure your registry, then re-run)"
+{{/if}}
 	@echo ""
-	@echo "Release v$$(cat VERSION) built locally."
-	@echo "Push: git push --tags{{#if has_compose}} && docker push <registry>/{{project_slug}}-api:$$(cat VERSION){{/if}}"
+	@echo "Release v$$(cat VERSION) ready. Push: git push --follow-tags"
 
 # ---------- project-specific ----------
 # Add your one-shot scripts here. Each should have a `make foo` and
