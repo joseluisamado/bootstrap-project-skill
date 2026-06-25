@@ -1,0 +1,31 @@
+# ROADMAP — phased plan{{#if use_gates}} with go/no-go gates{{/if}}
+
+The canonical sequence. It refines the approach in
+[../docs/FOUNDATION.md](../docs/FOUNDATION.md) into trackable tasks.
+{{#if use_gates}}Each phase ends in a **gate**; do not cross a gate until its
+condition is met. Gate status is tracked in [GATES.md](GATES.md).{{/if}}
+Every action goes in [../logbook/LOG.md](../logbook/LOG.md).
+
+Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
+
+---
+
+{{phases_block}}
+
+{{#unless use_gates}}
+---
+
+## End state
+
+> **DONE** — {{TODO: the condition that means the investigation has reached a
+> legitimate stopping point — understood/recovered, OR a clear, logged failure
+> point. Either is a valid end.}}
+{{/unless}}
+
+---
+
+## Critical reminders
+
+{{TODO: the handful of phase-spanning reminders that prevent the most expensive
+mistakes. Mirror FOUNDATION §6's bluntest points here where they bear on the
+sequencing.}}

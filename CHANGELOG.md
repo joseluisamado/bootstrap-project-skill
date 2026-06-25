@@ -9,6 +9,22 @@ The version recorded in a project's `.bootstrap-meta.yaml` matches the
 version below at the time of scaffolding. See [`MIGRATIONS.md`](./MIGRATIONS.md)
 for upgrade notes when the skill version bumps.
 
+## [Unreleased]
+
+### Added
+
+- **New sibling skill: `bootstrap-investigation`** (own version, starting at
+  0.1.0; see [`investigation-skill/CHANGELOG.md`](./investigation-skill/CHANGELOG.md)).
+  Scaffolds investigation/documentation projects — recoveries, reverse-engineering,
+  forensics, research write-ups — whose deliverable is understanding plus an
+  auditable record rather than software built from source. Swaps bootstrap's
+  stack/deploy axes for a *subject* + *artifact-provenance policy*
+  (private-archive / public-writeup / none), a phased `plan/ROADMAP.md` with an
+  optional go/no-go **gates** decision log, an append-only **logbook/**, and
+  `evidence/` + `sources/` archives. Shape distilled from a real firmware-recovery
+  project. `install.sh` now installs all three skills; `investigation-skill/`
+  ships its own `templates/` (not shared with bootstrap).
+
 ## [0.3.0] — 2026-06-04
 
 ### Added

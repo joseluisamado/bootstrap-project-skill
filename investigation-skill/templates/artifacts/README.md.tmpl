@@ -1,0 +1,65 @@
+{{#if private_archive}}
+# artifacts/ — tooling, firmware, datasets, documents
+
+**These files ARE committed to git.** This is an always-private repo used as the
+durable archive. The artifacts are scarce and hard to re-source, so storing them
+in git is the whole point: the repo *is* the backup. The only exception is
+**reproducible blobs** (disk images, large dumps regenerable from the subject),
+which stay git-ignored under `build/images/` — see `.gitignore`.
+
+## Every artifact gets a manifest
+
+Even though the files are committed, each gets a manifest in [manifests/](manifests/) —
+sha256, size, provenance (where/when found), and scan status. This is the
+auditable record of *what each blob is and where it came from*, which the file
+itself doesn't tell you.
+
+## Layout
+
+```
+artifacts/
+  README.md                  (tracked)
+  manifests/                 (tracked — one .md per artifact)
+    INDEX.md
+    _TEMPLATE.md
+    <slug>.md
+  bin/      tools/binaries                              (TRACKED — untrusted)
+  data/     firmware/datasets/documents                (TRACKED)
+  build/    derived outputs                             (TRACKED)
+    images/ reproducible images/dumps                   (IGNORED — reproducible)
+```
+
+## Rules
+
+1. **Every file added here gets a manifest entry** in `manifests/` (copy
+   `manifests/_TEMPLATE.md`). Record sha256, size, source, date obtained, scan
+   status; add a row to `INDEX.md`.
+2. **Treat every binary as untrusted.** Note virus-scan / sandbox status in its
+   manifest before running. Run only inside a disposable environment.
+3. **Keep this repo PRIVATE.** It contains proprietary material. Do not push to a
+   shared or public remote.
+4. Compute a checksum on arrival: `shasum -a 256 <file>`.
+{{/if}}
+{{#if public_writeup}}
+# artifacts/ — references (not stored)
+
+This investigation is intended to be publishable, so **proprietary or large
+binary artifacts are NOT committed here.** Instead, this directory records *what
+artifacts the work relies on and where to obtain them*, without storing the
+artifacts themselves.
+
+## How to reference an artifact
+
+For each artifact the investigation depends on, add a manifest in [manifests/](manifests/)
+(copy `_TEMPLATE.md`) recording its identity (sha256 if known), where to obtain
+it, and its terms — but keep the file itself out of the repo (it's covered by
+`.gitignore`). This gives reproducibility without committing material that can't
+be published.
+
+## Rules
+
+1. **Do not commit proprietary or large binary artifacts.** Reference them via a
+   manifest instead.
+2. Record each artifact's **own terms** — the project LICENSE doesn't cover them.
+3. If you keep a local working copy, it stays git-ignored (see `.gitignore`).
+{{/if}}

@@ -1,0 +1,31 @@
+# LOG — {{project_name}}
+
+Append-only journal of every meaningful action taken, **newest at the bottom**.
+This is the durable memory of the investigation across sessions. Use
+[TEMPLATE.md](TEMPLATE.md) for each entry.
+
+**What earns an entry:** {{#if use_gates}}a gate changing state, {{/if}}an
+artifact arriving, a hands-on result (a run, a capture, a test), a dead end that
+rules something out, a correction to a prior understanding. **Not** every
+conversation turn or intermediate thought — those stay in the working session
+until they settle into one of the above. When in doubt, batch: one entry per real
+checkpoint, written when the picture is clear.
+
+Record error strings, identifiers, and versions **verbatim** — they're how you
+search threads/docs later and how mis-identification gets caught.
+
+---
+
+## {{date_today}} — Project kickoff
+
+**Phase:** Phase 0
+**Who:** {{kickoff_who}}
+**Did:** Scaffolded the investigation via the bootstrap-investigation skill —
+docs quintet, phased plan{{#if use_gates}} + gates{{/if}}, logbook, evidence and
+sources archives{{#if has_artifacts}}, artifact manifests{{/if}}.
+**Result:** Repository structure in place. Next, fill the SUBJECT fact-sheet and
+the FOUNDATION briefing.
+**Artifacts:** the scaffold (see `BOOTSTRAP-MANIFEST.md`).
+**Next:** Pin down the subject in [../docs/SUBJECT.md](../docs/SUBJECT.md).
+
+<!-- Append new entries below this line, newest at the bottom. -->

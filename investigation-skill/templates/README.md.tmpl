@@ -1,0 +1,64 @@
+# {{project_name}}
+
+{{description}}
+
+{{#if mode_is_learning}}
+> **Mode:** learning / experimental. {{learning_stakes_note}} We are free to take
+> risks a cautious approach would avoid. See [docs/FOUNDATION.md](docs/FOUNDATION.md)
+> for the honest risk framing.
+{{/if}}
+{{#if mode_is_production}}
+> **Mode:** production-stakes. Irreversible loss or damage is possible. Respect
+> every gate; do not act past a condition that isn't met. See
+> [docs/FOUNDATION.md](docs/FOUNDATION.md) for the risk framing.
+{{/if}}
+
+## The one-paragraph status
+
+{{TODO: one paragraph — where the investigation stands right now. What's known,
+what's the current frontier, what unblocks the next step. Keep this current; it
+is the first thing anyone reads.}}
+
+## Repository map
+
+| Path | What lives here |
+|------|-----------------|
+| [docs/](docs/) | Stable reference. [`FOUNDATION.md`](docs/FOUNDATION.md) is the original briefing; [`PROCEDURE.md`](docs/PROCEDURE.md) is the validated method; [`SUBJECT.md`](docs/SUBJECT.md) is the subject fact-sheet; [`WRITEUP.md`](docs/WRITEUP.md) is the narrative. |
+| [plan/](plan/) | The phased plan{{#if use_gates}} and the **go/no-go gates** decision log — the project's spine{{/if}}. |
+| [logbook/](logbook/) | Append-only journal of every action taken, dated. Start here to see what's been done. |
+{{#if has_artifacts}}| [artifacts/](artifacts/) | {{artifacts_map_note}} + `manifests/` describing each. |
+{{/if}}| [evidence/](evidence/) | Photos, logs, captures — the raw observations. |
+| [sources/](sources/) | Notes and references — the articles/threads/tools this work draws on. |
+
+## Where to start
+
+{{#if use_gates}}
+1. Read [plan/ROADMAP.md](plan/ROADMAP.md) — the phases and gates.
+2. Check [plan/GATES.md](plan/GATES.md) — which gate we're at, what unblocks the next.
+3. Read [logbook/LOG.md](logbook/LOG.md) — what has actually been done so far.
+4. Reference [docs/FOUNDATION.md](docs/FOUNDATION.md) for the deep background.
+{{/if}}
+{{#unless use_gates}}
+1. Read [plan/ROADMAP.md](plan/ROADMAP.md) — the phases.
+2. Read [logbook/LOG.md](logbook/LOG.md) — what has actually been done so far.
+3. Reference [docs/FOUNDATION.md](docs/FOUNDATION.md) for the deep background.
+{{/unless}}
+
+For the story end-to-end, read [docs/WRITEUP.md](docs/WRITEUP.md).
+
+## Current phase
+
+{{TODO: which phase{{#if use_gates}}/gate{{/if}} the investigation is at, and the
+immediate next move.}}
+
+{{#if private_archive}}
+## Privacy / provenance note
+
+This is an **always-private** repo used as the durable archive. It deliberately
+**commits** scarce artifacts and evidence — they're too hard to re-source to risk
+losing. Consequently it may contain proprietary material and identifying details.
+**Keep it private; do not push to a shared or public remote.** Only reproducible
+blobs (large images/dumps) are git-ignored. The project's own
+[LICENSE](LICENSE) covers the written record and any scripts authored here — not
+third-party artifacts, which keep their own terms (see [docs/PRIVACY.md](docs/PRIVACY.md)).
+{{/if}}

@@ -1,0 +1,48 @@
+# evidence/ — raw observations
+
+This directory holds the **primary observations** of the investigation: photos,
+captured logs, dumps, screenshots, measurement output — the receipts the logbook
+and write-up point at. Evidence is raw and immutable: once captured, it isn't
+edited. Interpretation lives in the logbook and docs, not here.
+
+{{#if private_archive}}
+**Committed.** Evidence is part of the durable archive and is committed to git
+(this is a private repo). It may contain identifying detail (serials, labels,
+faces) — that's another reason this repo stays private.
+{{/if}}
+{{#if public_writeup}}
+**Sweep before publishing.** Evidence may carry identifying or proprietary
+detail. Review this directory before the repo goes public.
+{{/if}}
+
+## Naming convention
+
+Date-prefix and describe, so chronology and content are legible at a glance:
+
+```
+YYYY-MM-DD_<phase-or-topic>_<short-description>.<ext>
+```
+
+For a related set of captures from one session, group them in a dated subfolder
+with its own `README.md` noting context:
+
+```
+evidence/
+  README.md
+  YYYY-MM-DD_<session-topic>/
+    README.md            (what this session was, the setup, the conditions)
+    <capture_01>.jpeg
+    <capture_02>.png
+  logs/
+    YYYY-MM-DD_<topic>.txt   (captured output, errors verbatim)
+  photos/
+    <descriptive_name>.jpeg
+```
+
+## Rules
+
+1. **Capture verbatim.** Don't transcribe-and-discard; keep the original (the
+   raw photo, the full log). Transcriptions can be wrong; originals can't.
+2. **Date everything.** Absolute dates in filenames.
+3. **One source of truth.** If a log is referenced from the logbook, link to the
+   file here rather than pasting a copy that can drift.

@@ -1,0 +1,43 @@
+# GATES — go/no-go decision log
+
+The investigation advances phase-by-phase. Each gate has a **condition** that
+must be true to proceed, a **current status**, and the **evidence** that settled
+it. Update the status line and append to the history when a gate's state changes.
+Cross-reference the logbook entry that moved it.
+
+Status values: `OPEN` (not yet evaluable) · `BLOCKED` (condition failing, work
+needed) · `PASSED` (condition met, may proceed) · `FAILED` (terminal — project
+stops or pivots).
+
+A gate marked **(HARD)** can terminate the project if it fails — give it the
+most rigorous condition and the most evidence.
+
+---
+
+## Current position
+
+> {{TODO: one-paragraph summary of where the gates stand right now — which is the
+> current frontier, what would move it.}}
+
+| Gate | Guards entry to | Status | Settled by |
+|------|-----------------|--------|-----------|
+{{gates_summary_table}}
+
+---
+
+{{gates_block}}
+
+<!--
+Per-gate section format (one per gate):
+
+## Gate X — <short name> [ (HARD) ]
+
+**Condition:** <the single checkable statement that must be true to cross>.
+
+**Why it matters:** <what breaks downstream if you cross it falsely>.
+
+**To close:** <the concrete experiment/observation that settles it>.
+
+**History:**
+- YYYY-MM-DD — <status change + evidence; cross-reference logbook>.
+-->

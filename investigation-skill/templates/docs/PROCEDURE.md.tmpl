@@ -1,0 +1,51 @@
+# PROCEDURE — {{project_name}}
+
+The method. Unlike a recipe written up front, this document is **discovered**:
+it starts thin and sharpens as each step is validated. Mark every step with its
+confidence:
+
+- ✅ **validated** — done, worked, reproducible.
+- 🔶 **planned** — the intended step, not yet performed.
+- ⚠️ **risky** — irreversible or could damage the subject{{#if use_gates}}; usually behind a gate{{/if}}.
+
+Record the exact commands, inputs, and expected outputs. Record error strings and
+identifiers **verbatim**. The goal is that someone else (or future you) could
+re-run this from the document alone.
+
+---
+
+## Prerequisites
+
+{{TODO: environment, tooling, artifacts, and access needed before starting.}}
+
+## Step-by-step
+
+{{#if use_gates}}
+Each step maps to a phase in [../plan/ROADMAP.md](../plan/ROADMAP.md) and is gated
+by [../plan/GATES.md](../plan/GATES.md). Do not perform a ⚠️ step before its gate
+is PASSED.
+{{/if}}
+
+### 1. {{TODO: first step}}
+
+- **Do:**
+- **Expect:**
+- **If it fails:**
+
+### 2. {{TODO: next step}}
+
+- **Do:**
+- **Expect:**
+- **If it fails:**
+
+---
+
+## Known failure modes
+
+{{TODO: the ways this procedure is known to go wrong, and how to recognize each
+(the verbatim error string / symptom). This grows as you hit them.}}
+
+## Rollback / recovery
+
+{{TODO: for any reversible step, how to undo it. For irreversible steps, say so
+explicitly — that's what the gate guards.}}

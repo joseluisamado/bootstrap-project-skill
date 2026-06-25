@@ -1,0 +1,69 @@
+# CLAUDE.md — working conventions for this investigation
+
+{{description}}
+{{#if mode_is_learning}}Learning / experimental — risk-tolerant.{{/if}}
+{{#if mode_is_production}}Production-stakes — irreversible loss possible; respect every gate.{{/if}}
+
+## Orient yourself first
+
+{{#if use_gates}}
+1. [plan/GATES.md](plan/GATES.md) — which gate we're at, what unblocks the next.
+2. [plan/ROADMAP.md](plan/ROADMAP.md) — the phases.
+3. [logbook/LOG.md](logbook/LOG.md) — what's actually been done (newest at bottom).
+4. [docs/PROCEDURE.md](docs/PROCEDURE.md) — the validated method.
+5. [docs/FOUNDATION.md](docs/FOUNDATION.md) — deep background (the briefing).
+6. [docs/SUBJECT.md](docs/SUBJECT.md) — the subject fact-sheet.
+{{/if}}
+{{#unless use_gates}}
+1. [plan/ROADMAP.md](plan/ROADMAP.md) — the phases.
+2. [logbook/LOG.md](logbook/LOG.md) — what's actually been done (newest at bottom).
+3. [docs/PROCEDURE.md](docs/PROCEDURE.md) — the validated method.
+4. [docs/FOUNDATION.md](docs/FOUNDATION.md) — deep background (the briefing).
+5. [docs/SUBJECT.md](docs/SUBJECT.md) — the subject fact-sheet.
+{{/unless}}
+
+## Non-negotiable rules
+
+- **Log every meaningful discovery** in [logbook/LOG.md](logbook/LOG.md) (use
+  [logbook/TEMPLATE.md](logbook/TEMPLATE.md)) — not every conversation step. A LOG
+  entry is for things worth remembering across sessions: {{#if use_gates}}a gate
+  changing state, {{/if}}an artifact arriving, a hands-on result, a dead end that
+  rules something out. Mid-investigation reasoning and intermediate findings stay
+  in the conversation until they settle. When in doubt, batch: one entry per real
+  checkpoint, written when the picture is clear. Don't edit tracking files every
+  turn.
+{{#if use_gates}}
+- **Respect the gates.** Do not act past a gate whose condition isn't met. A HARD
+  gate can terminate the project — don't pretend around it.
+{{/if}}
+{{rules_block}}
+{{#if has_artifacts}}
+- **Every artifact gets a manifest** ([artifacts/manifests/](artifacts/manifests/)),
+  a sha256, and a provenance note. {{#if private_archive}}The files themselves
+  **are committed** (private archive repo) — only reproducible blobs are
+  git-ignored. {{/if}}Treat downloaded binaries as untrusted; run only in a
+  disposable environment.
+{{/if}}
+
+{{#if private_archive}}
+## Privacy
+
+**Always-private archive repo.** It commits scarce artifacts, evidence, and all
+docs — intentionally, as the durable backup. Only reproducible blobs are
+git-ignored. **Never push to a shared or public remote.** See
+[docs/PRIVACY.md](docs/PRIVACY.md).
+{{/if}}
+
+## Git
+
+Per global prefs: stage when ready, **don't commit unprompted** — wait for the
+user. Conventional Commits.
+
+## Conventions
+
+- Dates absolute (`YYYY-MM-DD`).
+- Record error strings, identifiers, and version numbers **verbatim** — they're
+  how threads/docs get searched and how mis-identification gets caught.
+{{#if has_artifacts}}- New artifact → manifest from [artifacts/manifests/_TEMPLATE.md](artifacts/manifests/_TEMPLATE.md) + a row in `INDEX.md`.
+{{/if}}- New hands-on session → optional `logbook/sessions/<date>-<topic>.md`, summarized
+  back into `LOG.md`.

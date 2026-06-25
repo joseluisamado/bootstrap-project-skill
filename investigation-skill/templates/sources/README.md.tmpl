@@ -1,0 +1,38 @@
+# sources/ — references and prior art
+
+The articles, forum threads, datasheets, documentation, and tools this
+investigation draws on. The investigation stands on this prior work; record it
+so a finding can be traced back to its basis and so a thread can be re-found when
+a verbatim error string needs searching.
+
+## What to record per source
+
+Keep a notes file (or a row in an index) per source with:
+
+- **Title / identifier** and **URL** (or where it lives if offline).
+- **Date accessed** (absolute).
+- **Why it matters** — the specific thing this source contributes (the worked
+  example, the part number, the procedure step).
+- **Reliability** — primary/authoritative vs. forum-anecdote. Note when a claim
+  is unverified.
+- Optionally, a **cached copy** (if the source is fragile/likely to vanish and
+  the artifact policy permits storing it).
+
+## Suggested layout
+
+```
+sources/
+  README.md
+  INDEX.md            (one row per source: id, title, url, why-it-matters, reliability)
+  <slug>.md           (notes on a specific source)
+  cache/              (optional offline copies, if policy permits)
+```
+
+## Discipline
+
+- **Cite, don't launder.** When a fact in the docs comes from a source, link the
+  source — especially for anything risky or surprising.
+- **Mark anecdotes as anecdotes.** A single forum post is a lead, not a fact,
+  until corroborated. Note the difference.
+- **Verify against primary sources** where a wrong fact would cost time, money,
+  or the subject. Prefer official docs/datasheets over secondary blogs.

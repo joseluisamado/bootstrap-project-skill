@@ -1,0 +1,46 @@
+# PRIVACY — {{project_name}}
+
+The provenance, privacy, and licensing posture of this investigation's record.
+
+## Repository posture
+
+**Artifact policy:** `{{artifact_policy}}`
+
+{{#if private_archive}}
+This is an **always-private archive**. The repo is the durable backup for scarce
+inputs; it deliberately commits proprietary artifacts, evidence (which may carry
+identifying detail — serial numbers, photos, labels), and all documentation. Only
+reproducible blobs (large images/dumps) are git-ignored.
+
+**Do not push this repo to a shared or public remote.** That is the single most
+consequential mistake available here. There is no public-safe subset; treat the
+whole repo as private.
+{{/if}}
+{{#if public_writeup}}
+This investigation is intended to be **publishable**. No proprietary blobs are
+committed — artifacts are referenced, not stored. Before making the repo public,
+sweep `evidence/` and the docs for anything identifying or proprietary that
+shouldn't be public.
+{{/if}}
+{{#if no_artifacts}}
+No artifact-storage machinery is configured. Keep proprietary or identifying
+material out of the repo.
+{{/if}}
+
+## Third-party terms
+
+The project's [LICENSE](../LICENSE) (`{{license_spdx}}`) covers **only** the
+original written record and any scripts authored here. It does **not** relicense
+third-party artifacts the repo references or stores — those keep their own terms.
+When in doubt, note the artifact's origin and terms in its manifest.
+
+## Identifying information
+
+{{TODO: list any identifying or sensitive data this repo contains (serials,
+personal data, location, credentials among evidence) so it's tracked explicitly.
+If `secret-scanning-precommit` is enabled, credentials are also guarded at commit
+time — but evidence photos and labels are not, so enumerate them here.}}
+
+## Disclosure / contact
+
+For questions about this record: {{user_email}}.

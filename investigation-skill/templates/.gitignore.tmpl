@@ -1,0 +1,45 @@
+# {{project_name}} — gitignore
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+{{#if private_archive}}
+# ── Private-archive policy ───────────────────────────────────────────────────
+# This repo is the durable backup. Scarce/proprietary artifacts and evidence
+# ARE committed (that's the point). Only *reproducible* blobs are ignored here:
+# things that can be regenerated from the subject and would bloat history.
+
+# Reproducible large blobs (regenerate from the subject; don't store in git):
+*.img
+*.dd
+*.raw
+*.bin.dump
+artifacts/build/images/
+evidence/**/*.img
+
+# Scratch / working space
+scratch/
+tmp/
+{{/if}}
+{{#unless private_archive}}
+# ── Public / no-private-blobs policy ─────────────────────────────────────────
+# Do NOT commit proprietary or large binary artifacts. Reference them instead.
+artifacts/blobs/
+*.img
+*.dd
+*.raw
+*.bin
+scratch/
+tmp/
+
+# Anything that might carry credentials, keys, or licensing tokens
+secrets/
+*.key
+*.pem
+*.lic
+{{/unless}}
